@@ -71,24 +71,8 @@ Settings are stored in your browser `localStorage`.
 ## Security Model
 
 - No secrets are hardcoded in source.
-- You inject values at runtime via Settings UI (or `env.js` for private/self-managed deployments).
+- You inject values at runtime via Settings UI only.
 - Never commit real token or note IDs to the repository.
-
-## Optional Runtime Injection via `env.js`
-
-If you want prefilled values in a private environment, you can use `env.js`:
-
-```javascript
-window.HACKMD_ENV = {
-  API_TOKEN: '',
-  TASKS_NOTE_ID: '',
-  MEMORY_NOTE_ID: '',
-  ARTICLES_NOTE_ID: '',
-  CORS_PROXY: ''
-};
-```
-
-UI-saved values in `localStorage` take precedence over `env.js`.
 
 ## Troubleshooting
 
