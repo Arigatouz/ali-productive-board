@@ -5,3 +5,4 @@ env.js
 .wrangler/
 dist/
 .env
+.junie/
