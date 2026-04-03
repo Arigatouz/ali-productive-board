@@ -3761,8 +3761,8 @@
     function safeUrl(url) {
       try {
         const parsed = new URL(url);
-        if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return '#';
-        return parsed.href;
+        if (parsed.protocol === 'https:' || parsed.protocol === 'http:') return parsed.href;
+        return '#';
       } catch { return '#'; }
     }
 
