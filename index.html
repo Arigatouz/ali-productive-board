@@ -1706,19 +1706,43 @@
       .article-add-form input { min-width: 0; width: 100%; }
 
       /* Settings UI */
-      .settings-form { display: flex; flex-direction: column; gap: 16px; padding: 4px; }
+      .settings-form { display: flex; flex-direction: column; gap: 14px; padding: 2px; }
+      .settings-section {
+        border: 1px solid var(--border);
+        background: var(--bg-secondary);
+        border-radius: 12px;
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .settings-section-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+      .settings-section-help {
+        font-size: 12px;
+        color: var(--text-muted);
+        line-height: 1.5;
+      }
       .settings-field { display: flex; flex-direction: column; gap: 6px; }
-      .settings-field label { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+      .settings-field label { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
       .settings-field input { 
         padding: 10px 12px; 
         border: 1px solid var(--border); 
         border-radius: 8px; 
         font-size: 14px; 
         background: var(--bg-card);
+        color: var(--text-primary);
         width: 100%;
       }
-      .settings-field input:focus { outline: none; border-color: var(--accent); }
-      .settings-help { font-size: 12px; color: var(--text-muted); }
+      .settings-field input:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(217, 119, 87, 0.14);
+      }
+      .settings-help { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
     }
   </style>
 </head>
@@ -1829,7 +1853,7 @@
     const HACKMD_CONFIG = {
       API_TOKEN: localStorage.getItem('hackmd_api_token') || env.API_TOKEN || '',
       TASKS_NOTE_ID: localStorage.getItem('hackmd_tasks_id') || env.TASKS_NOTE_ID || '',
-      MEMORY_NOTE_ID: localStorage.getItem('hackmd_memory_id') || env.MEMORY_NOTE_ID || 'y6WXRlW-SG60_-88rYI7Ig',
+      MEMORY_NOTE_ID: localStorage.getItem('hackmd_memory_id') || env.MEMORY_NOTE_ID || '',
       ARTICLES_NOTE_ID: localStorage.getItem('hackmd_articles_id') || env.ARTICLES_NOTE_ID || '',
       CORS_PROXY: localStorage.getItem('hackmd_cors_proxy') || env.CORS_PROXY || ''
     };
@@ -1874,27 +1898,41 @@
       document.getElementById('modalTitle').textContent = 'Settings';
       document.getElementById('modalBody').innerHTML = `
         <div class="settings-form">
-          <div class="settings-field">
-            <label>HackMD API Token</label>
-            <input type="password" id="configApiToken" value="${HACKMD_CONFIG.API_TOKEN}" placeholder="Paste your API token here">
-            <div class="settings-help">Get it from HackMD Settings > API > API Token</div>
+          <div class="settings-section">
+            <div class="settings-section-title">Authentication</div>
+            <div class="settings-section-help">Paste your HackMD personal API token. This value is saved only in your browser (localStorage).</div>
+            <div class="settings-field">
+              <label for="configApiToken">HackMD API Token</label>
+              <input type="password" id="configApiToken" value="${HACKMD_CONFIG.API_TOKEN}" placeholder="Paste your HackMD API token">
+              <div class="settings-help">HackMD → Settings → API → API Token</div>
+            </div>
           </div>
-          <div class="settings-field">
-            <label>CORS Proxy URL (Optional)</label>
-            <input type="text" id="configCorsProxy" value="${HACKMD_CONFIG.CORS_PROXY}" placeholder="e.g., https://api.allorigins.win/raw?url=">
-            <div class="settings-help">GitHub Pages requires a proxy to reach HackMD. Default: allorigins.win</div>
+
+          <div class="settings-section">
+            <div class="settings-section-title">Connectivity</div>
+            <div class="settings-section-help">For GitHub Pages, use your private Cloudflare Worker URL and end it with `/hackmd/`.</div>
+            <div class="settings-field">
+              <label for="configCorsProxy">CORS Proxy URL</label>
+              <input type="text" id="configCorsProxy" value="${HACKMD_CONFIG.CORS_PROXY}" placeholder="https://your-worker.workers.dev/hackmd/">
+              <div class="settings-help">Recommended: your own Cloudflare Worker proxy.</div>
+            </div>
           </div>
-          <div class="settings-field">
-            <label>Tasks Note ID</label>
-            <input type="text" id="configTasksId" value="${HACKMD_CONFIG.TASKS_NOTE_ID}">
-          </div>
-          <div class="settings-field">
-            <label>Memory Note ID</label>
-            <input type="text" id="configMemoryId" value="${HACKMD_CONFIG.MEMORY_NOTE_ID}">
-          </div>
-          <div class="settings-field">
-            <label>Articles Note ID</label>
-            <input type="text" id="configArticlesId" value="${HACKMD_CONFIG.ARTICLES_NOTE_ID}">
+
+          <div class="settings-section">
+            <div class="settings-section-title">HackMD Note IDs</div>
+            <div class="settings-section-help">Paste the note IDs (the part after https://hackmd.io/) for each board section.</div>
+            <div class="settings-field">
+              <label for="configTasksId">Tasks Note ID</label>
+              <input type="text" id="configTasksId" value="${HACKMD_CONFIG.TASKS_NOTE_ID}" placeholder="e.g. AbCDefGhIjKlMnOpQrStUv">
+            </div>
+            <div class="settings-field">
+              <label for="configMemoryId">Memory Note ID</label>
+              <input type="text" id="configMemoryId" value="${HACKMD_CONFIG.MEMORY_NOTE_ID}" placeholder="e.g. AbCDefGhIjKlMnOpQrStUv">
+            </div>
+            <div class="settings-field">
+              <label for="configArticlesId">Articles Note ID</label>
+              <input type="text" id="configArticlesId" value="${HACKMD_CONFIG.ARTICLES_NOTE_ID}" placeholder="e.g. AbCDefGhIjKlMnOpQrStUv">
+            </div>
           </div>
         </div>
       `;
