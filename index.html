@@ -1856,6 +1856,9 @@
       CORS_PROXY: localStorage.getItem('hackmd_cors_proxy') || ''
     };
 
+    // Backward-compatible alias in case any runtime path still references `hackmd`.
+    const hackmd = HACKMD_CONFIG;
+
     function getFullApiUrl(path) {
       const baseUrl = 'https://api.hackmd.io/v1';
       const fullUrl = baseUrl + path;
