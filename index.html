@@ -1768,7 +1768,7 @@
     const HACKMD_CONFIG = {
       API_TOKEN: localStorage.getItem('hackmd_api_token') || env.API_TOKEN || '',
       TASKS_NOTE_ID: localStorage.getItem('hackmd_tasks_id') || env.TASKS_NOTE_ID || '',
-      MEMORY_NOTE_ID: localStorage.getItem('hackmd_memory_id') || env.MEMORY_NOTE_ID || '',
+      MEMORY_NOTE_ID: localStorage.getItem('hackmd_memory_id') || env.MEMORY_NOTE_ID || 'y6WXRlW-SG60_-88rYI7Ig',
       ARTICLES_NOTE_ID: localStorage.getItem('hackmd_articles_id') || env.ARTICLES_NOTE_ID || '',
       CORS_PROXY: localStorage.getItem('hackmd_cors_proxy') || env.CORS_PROXY || ''
     };
@@ -3098,51 +3098,85 @@
     function parseMemoryMarkdown(content) {
       const parsed = {
         title: '',
-        fields: {},
-        sections: {},
-        tables: [],
+        metadata: {},
+        sections: [],
         rawContent: content
       };
 
       const lines = content.split('\n');
-      let currentSection = '_intro';
-      parsed.sections[currentSection] = [];
+      let currentSection = null;
 
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
-
-        if (line.match(/^# /)) {
-          parsed.title = line.replace(/^# /, '').trim();
-          continue;
-        }
-
-        if (line.match(/^## /)) {
-          currentSection = line.replace(/^## /, '').trim();
-          parsed.sections[currentSection] = [];
-          continue;
-        }
-
+        const h1Match = line.match(/^# (.*)$/);
+        const h2Match = line.match(/^## (.*)$/);
+        const h3Match = line.match(/^### (.*)$/);
         const kvMatch = line.match(/^\*\*(.+?):\*\*\s*(.*)$/);
-        if (kvMatch) {
-          parsed.fields[kvMatch[1]] = kvMatch[2];
-          continue;
+
+        if (h1Match) {
+          parsed.title = h1Match[1].trim();
+        } else if (h2Match) {
+          currentSection = {
+            title: h2Match[1].trim(),
+            level: 2,
+            content: [],
+            metadata: {},
+            subsections: []
+          };
+          parsed.sections.push(currentSection);
+        } else if (h3Match) {
+          const subSection = {
+            title: h3Match[1].trim(),
+            level: 3,
+            content: [],
+            metadata: {}
+          };
+          if (currentSection) {
+            currentSection.subsections.push(subSection);
+          } else {
+            // If no H2 yet, treat H3 as a top-level section
+            currentSection = {
+              title: subSection.title,
+              level: 2, // promote for layout consistency
+              content: [],
+              metadata: {},
+              subsections: []
+            };
+            parsed.sections.push(currentSection);
+          }
+        } else if (kvMatch) {
+          const key = kvMatch[1].trim();
+          const value = kvMatch[2].trim();
+          if (currentSection) {
+            const activeSub = currentSection.subsections[currentSection.subsections.length - 1];
+            if (activeSub) {
+              activeSub.metadata[key] = value;
+            } else {
+              currentSection.metadata[key] = value;
+            }
+          } else {
+            parsed.metadata[key] = value;
+          }
+        } else if (line.trim() || (currentSection && currentSection.content.length > 0)) {
+          // Add content to the most specific active scope
+          if (currentSection) {
+            const activeSub = currentSection.subsections[currentSection.subsections.length - 1];
+            if (activeSub) {
+              activeSub.content.push(line);
+            } else {
+              currentSection.content.push(line);
+            }
+          }
         }
-
-        parsed.sections[currentSection].push(line);
       }
 
-      for (const key in parsed.sections) {
-        parsed.sections[key] = parsed.sections[key].join('\n').trim();
-      }
-
-      const tableRegex = /\|(.+)\|\n\|[-| ]+\|\n((?:\|.+\|\n?)+)/g;
-      let match;
-      while ((match = tableRegex.exec(content)) !== null) {
-        const headers = match[1].split('|').map(h => h.trim()).filter(h => h);
-        const rowLines = match[2].trim().split('\n');
-        const rows = rowLines.map(row => row.split('|').map(c => c.trim()).filter(c => c));
-        parsed.tables.push({ headers, rows });
-      }
+      // Final cleanup of content arrays
+      parsed.sections.forEach(s => {
+        s.content = s.content.join('\n').trim();
+        s.subsections.forEach(sub => {
+          sub.content = sub.content.join('\n').trim();
+        });
+      });
 
       return parsed;
     }
@@ -3273,46 +3307,98 @@
     function renderMemoryOverview() {
       if (!memoryData.claudeMd) return;
 
-      let statsHtml = '<div class="stats">';
-      for (const [dirName, files] of Object.entries(memoryData.memoryDirs)) {
-        let count;
-        if (dirName === 'context') {
-          count = 0;
-          for (const file of files) {
-            const p = file.parsed;
-            count += Object.keys(p.fields).length;
-            for (const table of p.tables) { count += table.rows.length; }
-            for (const [sName, sContent] of Object.entries(p.sections)) {
-              if (sContent && sName !== '_intro') {
-                count += sContent.split('\n').filter(l => l.trim() && !l.trim().startsWith('|')).length;
-              }
-            }
-          }
-        } else {
-          count = files.length;
+      const p = parseMemoryMarkdown(memoryData.claudeMd.content);
+      let html = '';
+
+      if (p.title) {
+        html += `<h1 class="memory-title" style="margin-bottom: 20px;">${escapeHtml(p.title)}</h1>`;
+      }
+
+      // Render top-level metadata (if any)
+      if (Object.keys(p.metadata).length > 0) {
+        html += '<div class="memory-card-fields" style="margin-bottom: 20px; background: var(--bg-secondary); padding: 15px; border-radius: 12px; border: 1px solid var(--border);">';
+        for (const [key, value] of Object.entries(p.metadata)) {
+          html += `
+            <div class="memory-card-field">
+              <span class="memory-card-field-label">${escapeHtml(key)}</span>
+              <span class="memory-card-field-value">${escapeHtml(value)}</span>
+            </div>
+          `;
         }
-        statsHtml += `
-          <div class="stat">
-            <div class="stat-value">${count}</div>
-            <div class="stat-label">${dirName}</div>
+        html += '</div>';
+      }
+
+      // Render sections (H2 cards)
+      html += '<div class="memory-grid" style="grid-template-columns: 1fr;">';
+      for (const section of p.sections) {
+        let sectionHtml = `
+          <div class="file-card" style="margin-bottom: 20px;">
+            <div class="file-card-header" onclick="this.nextElementSibling.classList.toggle('expanded'); this.querySelector('.toggle').textContent = this.nextElementSibling.classList.contains('expanded') ? '\u2212' : '+'">
+              <span class="file-card-title">${escapeHtml(section.title)}</span>
+              <span class="toggle" style="color: var(--text-muted);">&minus;</span>
+            </div>
+            <div class="file-card-content expanded">
+        `;
+
+        // Section metadata
+        if (Object.keys(section.metadata).length > 0) {
+          sectionHtml += '<div class="memory-card-fields" style="margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px;">';
+          for (const [key, value] of Object.entries(section.metadata)) {
+            sectionHtml += `
+              <div class="memory-card-field">
+                <span class="memory-card-field-label">${escapeHtml(key)}</span>
+                <span class="memory-card-field-value">${escapeHtml(value)}</span>
+              </div>
+            `;
+          }
+          sectionHtml += '</div>';
+        }
+
+        // Section content
+        if (section.content) {
+          sectionHtml += `<div class="markdown-content" style="margin-bottom: 15px;">${renderMarkdownToHtml(section.content)}</div>`;
+        }
+
+        // Subsections (H3)
+        if (section.subsections.length > 0) {
+          for (const sub of section.subsections) {
+            sectionHtml += `
+              <div class="memory-sub-section" style="margin-top: 15px; border-top: 1px dashed var(--border); padding-top: 10px;">
+                <h3 style="margin-bottom: 8px; color: var(--accent); font-size: 1.1em;">${escapeHtml(sub.title)}</h3>
+            `;
+
+            if (Object.keys(sub.metadata).length > 0) {
+              sectionHtml += '<div class="memory-card-fields" style="margin-bottom: 8px;">';
+              for (const [key, value] of Object.entries(sub.metadata)) {
+                sectionHtml += `
+                  <div class="memory-card-field">
+                    <span class="memory-card-field-label">${escapeHtml(key)}</span>
+                    <span class="memory-card-field-value">${escapeHtml(value)}</span>
+                  </div>
+                `;
+              }
+              sectionHtml += '</div>';
+            }
+
+            if (sub.content) {
+              sectionHtml += `<div class="markdown-content">${renderMarkdownToHtml(sub.content)}</div>`;
+            }
+            sectionHtml += '</div>';
+          }
+        }
+
+        sectionHtml += `
+            </div>
           </div>
         `;
+        html += sectionHtml;
       }
-      statsHtml += '</div>';
+      html += '</div>';
 
-      const claudeContent = renderMarkdownToHtml(memoryData.claudeMd.content);
+      // Footer edit button
+      html += `<button onclick="openEditModal('HackMD Note', 'claudeMd')" style="margin-top: 20px;">Edit Note in HackMD</button>`;
 
-      memoryContentContainer.innerHTML = `
-        ${statsHtml}
-        <div class="file-card">
-          <div class="file-card-header" onclick="this.nextElementSibling.classList.toggle('expanded'); this.querySelector('.toggle').textContent = this.nextElementSibling.classList.contains('expanded') ? '\u2212' : '+'">
-            <span class="file-card-title">CLAUDE.md</span>
-            <span class="toggle" style="color: var(--text-muted);">&minus;</span>
-          </div>
-          <div class="file-card-content expanded markdown-content">${claudeContent}</div>
-        </div>
-        <button onclick="openEditModal('CLAUDE.md', 'claudeMd')" style="margin-top: 10px;">Edit CLAUDE.md</button>
-      `;
+      memoryContentContainer.innerHTML = html;
     }
 
     function renderMemoryFile(fileName) {
