@@ -114,20 +114,20 @@ Copy that URL — you will need it in the next step.
 
 #### Step 7 — Verify the Worker is live
 
-Test the path guard (should return `400 Bad Request`):
+Test a proxied call with your HackMD token (fetches your list of notes):
 
 ```bash
-curl -i https://<your-worker-url>/
+curl -i -H "Authorization: Bearer YOUR_HACKMD_TOKEN" \
+  https://<your-worker-url>/hackmd/notes
 ```
 
-Test a proxied call with your HackMD token:
+A successful response returns `200 OK` with a JSON array of your notes. Common errors:
 
-```bash
-curl -H "Authorization: Bearer YOUR_TOKEN" \
-  https://<your-worker-url>/hackmd/notes/YOUR_NOTE_ID
-```
-
-You should get a JSON response with note data. If you get `401`, the token is wrong. If you get `400`, the path is missing `/hackmd/`.
+| Status | Meaning |
+|--------|---------|
+| `200` | ✅ Worker is live and token is valid |
+| `401` | Token is invalid or missing |
+| `404` | Path does not match a HackMD endpoint — check spelling |
 
 ---
 
