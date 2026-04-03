@@ -1917,6 +1917,11 @@
     let onSettingsSave = null;
 
     function showSettingsModal() {
+      if (!modalBody || !modalTitle || !modalOverlay) {
+        console.error('Modal elements not found');
+        return;
+      }
+
       const settingsValues = {
         apiToken: normalizeConfigValue(HACKMD_CONFIG.API_TOKEN),
         corsProxy: normalizeConfigValue(HACKMD_CONFIG.CORS_PROXY),
@@ -1925,8 +1930,8 @@
         articlesId: normalizeConfigValue(HACKMD_CONFIG.ARTICLES_NOTE_ID)
       };
 
-      document.getElementById('modalTitle').textContent = 'Settings';
-      document.getElementById('modalBody').innerHTML = `
+      modalTitle.textContent = 'Settings';
+      modalBody.innerHTML = `
         <div class="settings-form">
           <div class="settings-section">
             <div class="settings-section-title">Authentication</div>
@@ -1967,22 +1972,33 @@
         </div>
       `;
 
-      document.getElementById('configApiToken').value = settingsValues.apiToken;
-      document.getElementById('configCorsProxy').value = settingsValues.corsProxy;
-      document.getElementById('configTasksId').value = settingsValues.tasksId;
-      document.getElementById('configMemoryId').value = settingsValues.memoryId;
-      document.getElementById('configArticlesId').value = settingsValues.articlesId;
+      // Safe field assignment
+      const setFieldValue = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.value = val || '';
+      };
+
+      setFieldValue('configApiToken', settingsValues.apiToken);
+      setFieldValue('configCorsProxy', settingsValues.corsProxy);
+      setFieldValue('configTasksId', settingsValues.tasksId);
+      setFieldValue('configMemoryId', settingsValues.memoryId);
+      setFieldValue('configArticlesId', settingsValues.articlesId);
 
       modalOverlay.classList.add('visible');
       modalOverlay.dataset.type = 'settings';
       
       onSettingsSave = () => {
+        const getFieldValue = (id) => {
+          const el = document.getElementById(id);
+          return el ? el.value.trim() : '';
+        };
+
         const config = {
-          apiToken: document.getElementById('configApiToken').value.trim(),
-          corsProxy: document.getElementById('configCorsProxy').value.trim(),
-          tasksId: document.getElementById('configTasksId').value.trim(),
-          memoryId: document.getElementById('configMemoryId').value.trim(),
-          articlesId: document.getElementById('configArticlesId').value.trim()
+          apiToken: getFieldValue('configApiToken'),
+          corsProxy: getFieldValue('configCorsProxy'),
+          tasksId: getFieldValue('configTasksId'),
+          memoryId: getFieldValue('configMemoryId'),
+          articlesId: getFieldValue('configArticlesId')
         };
         saveConfig(config);
         showStatus('Settings saved. Refreshing...');
@@ -1991,8 +2007,13 @@
     }
 
     function showAuthError() {
-      document.getElementById('modalTitle').textContent = 'Authentication Error (401)';
-      document.getElementById('modalBody').innerHTML = `
+      if (!modalBody || !modalTitle || !modalOverlay) {
+        console.error('Modal elements not found');
+        return;
+      }
+
+      modalTitle.textContent = 'Authentication Error (401)';
+      modalBody.innerHTML = `
         <div class="settings-form">
           <p style="color: var(--accent); font-weight: 600; margin-bottom: 12px;">The HackMD API returned a 401 Unauthorized error.</p>
           <div class="settings-field">
@@ -2013,11 +2034,13 @@
           </div>
         </div>
       `;
+
       modalOverlay.classList.add('visible');
       modalOverlay.dataset.type = 'settings';
       
       onSettingsSave = () => {
-        const apiToken = document.getElementById('configApiToken').value.trim();
+        const el = document.getElementById('configApiToken');
+        const apiToken = el ? el.value.trim() : '';
         localStorage.setItem('hackmd_api_token', apiToken);
         HACKMD_CONFIG.API_TOKEN = apiToken;
         showStatus('Token updated. Refreshing...');
