@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Productivity</title>
+  <script src="env.js"></script>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='4' y='2' width='24' height='28' rx='4' fill='%23faf9f5' stroke='%23D97757' stroke-width='2'/%3E%3Crect x='8' y='0' width='16' height='5' rx='2.5' fill='%23D97757'/%3E%3Cpath d='M9 13l3 3 5-5' fill='none' stroke='%23D97757' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='20' y='12' width='5' height='2' rx='1' fill='%23c4c4c2'/%3E%3Crect x='9' y='20' width='10' height='2' rx='1' fill='%23c4c4c2'/%3E%3Crect x='9' y='25' width='7' height='2' rx='1' fill='%23c4c4c2'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -38,57 +39,6 @@
       flex-direction: column;
     }
 
-    /* ===== PASSWORD GATE ===== */
-    #passwordGate {
-      position: fixed;
-      inset: 0;
-      background: var(--bg-primary);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 999;
-    }
-    #passwordGate.hidden { display: none; }
-    .password-box {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 40px 48px;
-      width: 360px;
-      box-shadow: 0 8px 32px rgba(20,20,19,0.08);
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      align-items: center;
-    }
-    .password-box h2 { font-size: 1.2rem; font-weight: 600; color: var(--text-primary); }
-    .password-box p { font-size: 13px; color: var(--text-muted); text-align: center; }
-    .password-box input {
-      width: 100%;
-      padding: 10px 14px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 14px;
-      font-family: inherit;
-      color: var(--text-primary);
-      background: var(--bg-secondary);
-      outline: none;
-    }
-    .password-box input:focus { border-color: var(--accent); }
-    .password-box button {
-      width: 100%;
-      background: var(--accent);
-      color: white;
-      border: none;
-      padding: 11px;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-    }
-    .password-box button:hover { background: var(--accent-hover); }
-    .password-error { color: #e55; font-size: 13px; display: none; }
-    .password-error.visible { display: block; }
 
     header {
       display: flex;
@@ -1239,20 +1189,480 @@
       color: var(--text-muted);
       margin-top: 2px;
     }
+
+    /* ===== ARTICLES PANEL ===== */
+    .articles-panel-inner {
+      flex: 1;
+      overflow-y: auto;
+      min-height: 0;
+      padding-bottom: 24px;
+    }
+
+    .articles-panel-inner::-webkit-scrollbar { width: 6px; }
+    .articles-panel-inner::-webkit-scrollbar-track { background: transparent; }
+    .articles-panel-inner::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    .articles-panel-inner::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+    .articles-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .articles-stats {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .articles-stat {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 80px;
+    }
+
+    .articles-stat-value {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1;
+    }
+
+    .articles-stat-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .articles-stat.stat-read .articles-stat-value { color: #2d9e6b; }
+    .articles-stat.stat-reading .articles-stat-value { color: var(--accent); }
+
+    .articles-add-btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+    .articles-add-btn:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+
+    .article-add-form {
+      background: var(--bg-card);
+      border: 1.5px dashed var(--border);
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin-bottom: 14px;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .article-add-form.visible { display: flex; }
+
+    .article-add-form-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .article-add-form input {
+      flex: 1;
+      min-width: 140px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--text-primary);
+      background: var(--bg-secondary);
+      outline: none;
+    }
+
+    .article-add-form input:focus { border-color: var(--accent); }
+
+    .article-add-form input::placeholder { color: var(--text-muted); }
+
+    .article-add-form-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .article-add-form-actions button {
+      padding: 7px 16px;
+      font-size: 13px;
+      border-radius: 7px;
+    }
+
+    .article-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      padding: 0;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 3px var(--shadow);
+      overflow: hidden;
+      transition: box-shadow 0.15s ease, border-color 0.15s ease;
+    }
+
+    .article-card:hover {
+      box-shadow: 0 4px 12px var(--shadow-hover);
+      border-color: var(--border);
+    }
+
+    .article-card-progress-bar {
+      height: 3px;
+      background: var(--border-light);
+      width: 100%;
+    }
+
+    .article-card-progress-fill {
+      height: 100%;
+      background: var(--accent);
+      transition: width 0.3s ease;
+      border-radius: 0 2px 2px 0;
+    }
+
+    .article-card-progress-fill.full { background: #2d9e6b; }
+
+    .article-card-body {
+      padding: 14px 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      position: relative;
+    }
+
+    .article-num {
+      width: 26px;
+      height: 26px;
+      border-radius: 7px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .article-card-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .article-title-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .article-title-link {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      text-decoration: none;
+      flex: 1;
+      min-width: 0;
+      word-break: break-word;
+      line-height: 1.4;
+    }
+
+    .article-title-link:hover { color: var(--accent); text-decoration: underline; }
+
+    .article-ext-icon {
+      color: var(--text-muted);
+      font-size: 11px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .article-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .article-status-btn {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1.5px solid transparent;
+      transition: all 0.15s ease;
+      font-family: inherit;
+    }
+
+    .article-status-btn.not-read {
+      background: var(--bg-secondary);
+      color: var(--text-muted);
+      border-color: var(--border);
+    }
+
+    .article-status-btn.not-read:hover { border-color: var(--accent); color: var(--accent); }
+
+    .article-status-btn.reading {
+      background: rgba(217, 119, 87, 0.1);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .article-status-btn.read {
+      background: rgba(45, 158, 107, 0.1);
+      color: #2d9e6b;
+      border-color: #2d9e6b;
+    }
+
+    .article-progress-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .article-progress-input {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100px;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--border);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .article-progress-input::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: 2px solid white;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+
+    .article-progress-input::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: 2px solid white;
+    }
+
+    .article-progress-pct {
+      font-weight: 600;
+      color: var(--text-primary);
+      min-width: 32px;
+      text-align: right;
+    }
+
+    .article-delete-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 4px 6px;
+      font-size: 14px;
+      line-height: 1;
+      border-radius: 4px;
+      opacity: 0;
+      transition: opacity 0.15s, color 0.15s;
+      font-family: inherit;
+    }
+
+    .article-card:hover .article-delete-btn { opacity: 1; }
+    .article-delete-btn:hover { color: #e55; background: transparent; border-color: transparent; }
+
+    /* ===== GLOBAL RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      body {
+        padding: 14px 16px;
+        height: auto;
+        min-height: 100dvh;
+        overflow: auto;
+      }
+
+      header {
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: flex-start;
+      }
+
+      .header-left {
+        flex-wrap: wrap;
+        gap: 8px;
+        width: 100%;
+        align-items: center;
+      }
+
+      .header-left svg { width: 28px; height: 28px; }
+
+      .header-left > div { flex: 1; }
+
+      h1 { font-size: 1.2rem; }
+
+      .view-toggle {
+        margin-left: 0;
+        flex-wrap: wrap;
+      }
+
+      .view-toggle button {
+        padding: 5px 10px;
+        font-size: 12px;
+      }
+
+      #taskViewToggle { display: none !important; }
+
+      .buttons {
+        width: 100%;
+        justify-content: flex-end;
+      }
+
+      #saveBtn { padding: 8px 14px; font-size: 13px; }
+
+      .tab-panel.active { display: flex; }
+
+      /* Kanban board on mobile: vertical stack */
+      .board {
+        flex-direction: column;
+        overflow-x: hidden;
+        overflow-y: auto;
+        gap: 16px;
+      }
+
+      .column {
+        min-width: 100%;
+        max-width: 100%;
+        height: auto;
+        max-height: none;
+      }
+
+      .cards { max-height: 400px; }
+
+      /* List view */
+      .list-view { overflow-x: hidden; }
+
+      /* Memory panel */
+      .memory-tabs {
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+
+      .memory-tab {
+        font-size: 12px;
+        padding: 6px 10px;
+      }
+
+      .memory-card-fields { grid-template-columns: 1fr; }
+
+      /* Articles */
+      .articles-toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .articles-stats { gap: 8px; }
+
+      .articles-stat {
+        padding: 8px 12px;
+        min-width: 70px;
+      }
+
+      .articles-stat-value { font-size: 1.2rem; }
+
+      .articles-add-btn { width: 100%; justify-content: center; }
+
+      .article-progress-input { width: 80px; }
+
+      .article-controls { gap: 6px; }
+
+      /* Modal */
+      .modal {
+        width: calc(100vw - 32px);
+        margin: 16px;
+        max-height: calc(100dvh - 32px);
+      }
+
+      /* Password gate */
+      .password-box {
+        width: calc(100vw - 40px);
+        padding: 28px 24px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body { padding: 10px 12px; }
+
+      h1 { font-size: 1.1rem; }
+
+      .view-toggle button { padding: 5px 8px; font-size: 11px; }
+
+      .articles-stat { padding: 7px 10px; min-width: 60px; }
+      .articles-stat-value { font-size: 1.1rem; }
+      .articles-stat-label { font-size: 10px; }
+
+      .article-card-body { padding: 12px 12px; gap: 10px; }
+      .article-title-link { font-size: 13px; }
+
+      .article-progress-group { width: 100%; }
+      .article-progress-input { flex: 1; width: auto; }
+
+      .article-add-form-row { flex-direction: column; }
+      .article-add-form input { min-width: 0; width: 100%; }
+
+      /* Settings UI */
+      .settings-form { display: flex; flex-direction: column; gap: 16px; padding: 4px; }
+      .settings-field { display: flex; flex-direction: column; gap: 6px; }
+      .settings-field label { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+      .settings-field input { 
+        padding: 10px 12px; 
+        border: 1px solid var(--border); 
+        border-radius: 8px; 
+        font-size: 14px; 
+        background: var(--bg-card);
+        width: 100%;
+      }
+      .settings-field input:focus { outline: none; border-color: var(--accent); }
+      .settings-help { font-size: 12px; color: var(--text-muted); }
+    }
   </style>
 </head>
 <body>
-  <!-- PASSWORD GATE -->
-  <div id="passwordGate">
-    <div class="password-box">
-      <svg width="40" height="40" viewBox="0 0 32 32" fill="none"><rect x="4" y="2" width="24" height="28" rx="4" fill="#faf9f5" stroke="#D97757" stroke-width="2"/><rect x="8" y="0" width="16" height="5" rx="2.5" fill="#D97757"/><path d="M9 13l3 3 5-5" fill="none" stroke="#D97757" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <h2>Productivity Dashboard</h2>
-      <p>Enter your password to continue</p>
-      <input type="password" id="passwordInput" placeholder="Password" />
-      <span class="password-error" id="passwordError">Wrong password, try again.</span>
-      <button id="passwordSubmit">Unlock</button>
-    </div>
-  </div>
 
   <header>
     <div class="header-left">
@@ -1271,6 +1681,7 @@
       <div class="view-toggle" id="mainTabToggle">
         <button id="tasksTabBtn" class="active">Tasks</button>
         <button id="memoryTabBtn">Memory</button>
+        <button id="articlesTabBtn">Articles</button>
       </div>
       <div class="view-toggle" id="taskViewToggle">
         <button id="boardViewBtn" class="active">Board</button>
@@ -1279,7 +1690,14 @@
     </div>
     <div class="buttons">
       <span id="syncStatus" style="font-size:13px;color:var(--text-muted);display:flex;align-items:center;gap:6px;"></span>
+      <button id="settingsBtn" title="Settings" style="padding: 10px; display: flex; align-items: center;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </button>
       <button id="saveBtn" class="primary" disabled>Save to HackMD</button>
+      <button id="articlesSaveBtn" class="primary" disabled style="display:none;">Save to HackMD</button>
     </div>
   </header>
 
@@ -1306,6 +1724,27 @@
     </div>
   </div>
 
+  <!-- ARTICLES TAB PANEL -->
+  <div class="tab-panel" id="articlesPanel">
+    <div class="articles-panel-inner">
+      <div class="articles-toolbar">
+        <div class="articles-stats" id="articlesStats"></div>
+        <button class="articles-add-btn" id="articlesAddToggle">+ Add Article</button>
+      </div>
+      <div class="article-add-form" id="articleAddForm">
+        <div class="article-add-form-row">
+          <input type="text" id="articleNameInput" placeholder="Article title…">
+          <input type="url" id="articleLinkInput" placeholder="https://…">
+        </div>
+        <div class="article-add-form-actions">
+          <button id="articleCancelBtn">Cancel</button>
+          <button id="articleSaveBtn" class="primary">Add</button>
+        </div>
+      </div>
+      <div id="articlesContainer"></div>
+    </div>
+  </div>
+
   <!-- MODAL (shared for memory) -->
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal">
@@ -1324,9 +1763,125 @@
   <div class="status-bar" id="status"></div>
 
   <script>
+    // ===== HACKMD CONFIGURATION =====
+    const env = window.HACKMD_ENV || {};
+    const HACKMD_CONFIG = {
+      API_TOKEN: localStorage.getItem('hackmd_api_token') || env.API_TOKEN || '',
+      TASKS_NOTE_ID: localStorage.getItem('hackmd_tasks_id') || env.TASKS_NOTE_ID || '',
+      MEMORY_NOTE_ID: localStorage.getItem('hackmd_memory_id') || env.MEMORY_NOTE_ID || '',
+      ARTICLES_NOTE_ID: localStorage.getItem('hackmd_articles_id') || env.ARTICLES_NOTE_ID || '',
+      CORS_PROXY: localStorage.getItem('hackmd_cors_proxy') || env.CORS_PROXY || 'https://api.allorigins.win/raw?url='
+    };
+
+    function getFullApiUrl(path) {
+      const baseUrl = 'https://api.hackmd.io/v1';
+      const fullUrl = baseUrl + path;
+      if (HACKMD_CONFIG.CORS_PROXY) {
+        return HACKMD_CONFIG.CORS_PROXY + encodeURIComponent(fullUrl);
+      }
+      return fullUrl;
+    }
+
+    function saveConfig(config) {
+      HACKMD_CONFIG.API_TOKEN = config.apiToken;
+      HACKMD_CONFIG.TASKS_NOTE_ID = config.tasksId;
+      HACKMD_CONFIG.MEMORY_NOTE_ID = config.memoryId;
+      HACKMD_CONFIG.ARTICLES_NOTE_ID = config.articlesId;
+      HACKMD_CONFIG.CORS_PROXY = config.corsProxy;
+
+      localStorage.setItem('hackmd_api_token', config.apiToken);
+      localStorage.setItem('hackmd_tasks_id', config.tasksId);
+      localStorage.setItem('hackmd_memory_id', config.memoryId);
+      localStorage.setItem('hackmd_articles_id', config.articlesId);
+      localStorage.setItem('hackmd_cors_proxy', config.corsProxy);
+    }
+
+    let onSettingsSave = null;
+
+    function showSettingsModal() {
+      document.getElementById('modalTitle').textContent = 'Settings';
+      document.getElementById('modalBody').innerHTML = `
+        <div class="settings-form">
+          <div class="settings-field">
+            <label>HackMD API Token</label>
+            <input type="password" id="configApiToken" value="${HACKMD_CONFIG.API_TOKEN}" placeholder="Paste your API token here">
+            <div class="settings-help">Get it from HackMD Settings > API > API Token</div>
+          </div>
+          <div class="settings-field">
+            <label>CORS Proxy URL (Optional)</label>
+            <input type="text" id="configCorsProxy" value="${HACKMD_CONFIG.CORS_PROXY}" placeholder="e.g., https://api.allorigins.win/raw?url=">
+            <div class="settings-help">GitHub Pages requires a proxy to reach HackMD. Default: allorigins.win</div>
+          </div>
+          <div class="settings-field">
+            <label>Tasks Note ID</label>
+            <input type="text" id="configTasksId" value="${HACKMD_CONFIG.TASKS_NOTE_ID}">
+          </div>
+          <div class="settings-field">
+            <label>Memory Note ID</label>
+            <input type="text" id="configMemoryId" value="${HACKMD_CONFIG.MEMORY_NOTE_ID}">
+          </div>
+          <div class="settings-field">
+            <label>Articles Note ID</label>
+            <input type="text" id="configArticlesId" value="${HACKMD_CONFIG.ARTICLES_NOTE_ID}">
+          </div>
+        </div>
+      `;
+      modalOverlay.classList.add('visible');
+      modalOverlay.dataset.type = 'settings';
+      
+      onSettingsSave = () => {
+        const config = {
+          apiToken: document.getElementById('configApiToken').value.trim(),
+          corsProxy: document.getElementById('configCorsProxy').value.trim(),
+          tasksId: document.getElementById('configTasksId').value.trim(),
+          memoryId: document.getElementById('configMemoryId').value.trim(),
+          articlesId: document.getElementById('configArticlesId').value.trim()
+        };
+        saveConfig(config);
+        showStatus('Settings saved. Refreshing...');
+        setTimeout(() => location.reload(), 1000);
+      };
+    }
+
+    function showAuthError() {
+      document.getElementById('modalTitle').textContent = 'Authentication Error (401)';
+      document.getElementById('modalBody').innerHTML = `
+        <div class="settings-form">
+          <p style="color: var(--accent); font-weight: 600; margin-bottom: 12px;">The HackMD API returned a 401 Unauthorized error.</p>
+          <div class="settings-field">
+            <label>Current API Token</label>
+            <input type="password" id="configApiToken" value="${HACKMD_CONFIG.API_TOKEN}">
+          </div>
+          <div style="margin-top: 16px; font-size: 13px; line-height: 1.6; background: var(--bg-secondary); padding: 12px; border-radius: 8px; border-left: 4px solid var(--accent);">
+            <strong>Auth Checklist:</strong>
+            <ul style="margin-left: 20px; margin-top: 8px;">
+              <li>Verify your API token is still valid in HackMD Settings.</li>
+              <li>Ensure the token has "read" and "write" permissions.</li>
+              <li>Check if your browser or network is blocking the <code>Authorization</code> header.</li>
+            </ul>
+            <div style="margin-top: 12px;">
+              <strong>Test with curl:</strong>
+              <pre style="background: var(--bg-card); padding: 8px; border-radius: 4px; border: 1px solid var(--border); overflow-x: auto; font-size: 11px; margin-top: 4px;">curl -H "Authorization: Bearer YOUR_TOKEN" https://api.hackmd.io/v1/notes/${HACKMD_CONFIG.TASKS_NOTE_ID}</pre>
+            </div>
+          </div>
+        </div>
+      `;
+      modalOverlay.classList.add('visible');
+      modalOverlay.dataset.type = 'settings';
+      
+      onSettingsSave = () => {
+        const apiToken = document.getElementById('configApiToken').value.trim();
+        localStorage.setItem('hackmd_api_token', apiToken);
+        HACKMD_CONFIG.API_TOKEN = apiToken;
+        showStatus('Token updated. Refreshing...');
+        setTimeout(() => location.reload(), 1000);
+      };
+    }
+
+    document.getElementById('settingsBtn').addEventListener('click', showSettingsModal);
+
     // ===== SHARED STATE =====
     let activeMainTab = 'tasks';
-    let authToken = sessionStorage.getItem('dash_token') || '';
 
     const statusEl = document.getElementById('status');
     const filePathEl = document.getElementById('filePath');
@@ -1343,70 +1898,34 @@
       syncStatusEl.style.color = color || 'var(--text-muted)';
     }
 
-    // ===== PASSWORD GATE =====
-    const passwordGate = document.getElementById('passwordGate');
-    const passwordInput = document.getElementById('passwordInput');
-    const passwordSubmit = document.getElementById('passwordSubmit');
-    const passwordError = document.getElementById('passwordError');
-
-    async function unlock() {
-      const pw = passwordInput.value;
-      if (!pw) return;
-      passwordSubmit.disabled = true;
-      passwordSubmit.textContent = 'Unlocking…';
-      try {
-        const res = await fetch('/.netlify/functions/auth', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password: pw })
-        });
-        const data = await res.json();
-        if (res.ok && data.token) {
-          authToken = data.token;
-          sessionStorage.setItem('dash_token', authToken);
-          passwordGate.classList.add('hidden');
-          initDashboard();
-        } else {
-          passwordError.classList.add('visible');
-          passwordInput.value = '';
-          passwordInput.focus();
-        }
-      } catch (e) {
-        passwordError.textContent = 'Connection error. Try again.';
-        passwordError.classList.add('visible');
-      }
-      passwordSubmit.disabled = false;
-      passwordSubmit.textContent = 'Unlock';
-    }
-
-    passwordSubmit.addEventListener('click', unlock);
-    passwordInput.addEventListener('keydown', e => { if (e.key === 'Enter') unlock(); });
-
-    // If token already in session, skip gate immediately
-    if (authToken) {
-      passwordGate.classList.add('hidden');
-    }
 
     // ===== MAIN TAB SWITCHING =====
     const tasksTabBtn = document.getElementById('tasksTabBtn');
     const memoryTabBtn = document.getElementById('memoryTabBtn');
+    const articlesTabBtn = document.getElementById('articlesTabBtn');
     const tasksPanel = document.getElementById('tasksPanel');
     const memoryPanel = document.getElementById('memoryPanel');
+    const articlesPanel = document.getElementById('articlesPanel');
     const taskViewToggle = document.getElementById('taskViewToggle');
     const saveBtn = document.getElementById('saveBtn');
+    const articlesSaveBtn = document.getElementById('articlesSaveBtn');
 
     function switchMainTab(tab) {
       activeMainTab = tab;
       tasksTabBtn.classList.toggle('active', tab === 'tasks');
       memoryTabBtn.classList.toggle('active', tab === 'memory');
+      articlesTabBtn.classList.toggle('active', tab === 'articles');
       tasksPanel.classList.toggle('active', tab === 'tasks');
       memoryPanel.classList.toggle('active', tab === 'memory');
+      articlesPanel.classList.toggle('active', tab === 'articles');
       taskViewToggle.style.display = tab === 'tasks' ? 'flex' : 'none';
       saveBtn.style.display = tab === 'tasks' ? 'inline-flex' : 'none';
+      articlesSaveBtn.style.display = tab === 'articles' ? 'inline-flex' : 'none';
     }
 
     tasksTabBtn.addEventListener('click', () => switchMainTab('tasks'));
     memoryTabBtn.addEventListener('click', () => switchMainTab('memory'));
+    articlesTabBtn.addEventListener('click', () => switchMainTab('articles'));
 
     // ============================================================
     // ===== TASKS FUNCTIONALITY =====
@@ -2476,13 +2995,22 @@
     }
 
     async function loadTasksFromAPI() {
+      if (!HACKMD_CONFIG.API_TOKEN) {
+        showStatus('Error: HackMD API Token is not configured');
+        return;
+      }
       setSyncStatus('⟳ Loading…');
       try {
-        const res = await fetch('/.netlify/functions/tasks', {
-          headers: { 'Authorization': 'Bearer ' + authToken }
+        const res = await fetch(getFullApiUrl(`/notes/${HACKMD_CONFIG.TASKS_NOTE_ID}`), {
+          headers: { 'Authorization': 'Bearer ' + HACKMD_CONFIG.API_TOKEN }
         });
-        if (res.status === 401) { sessionStorage.removeItem('dash_token'); location.reload(); return; }
-        if (!res.ok) throw new Error('Failed to load');
+        if (!res.ok) {
+          if (res.status === 401) {
+            showAuthError();
+            throw new Error('Unauthorized: Please check your API token');
+          }
+          throw new Error('Failed to load from HackMD');
+        }
         const data = await res.json();
         const result = parseTaskMarkdown(data.content);
         sections = result.sections;
@@ -2501,16 +3029,22 @@
 
     saveBtn.addEventListener('click', async () => {
       if (!hasChanges) return;
+      if (!HACKMD_CONFIG.API_TOKEN) {
+        showStatus('Error: HackMD API Token is not configured');
+        return;
+      }
       saveBtn.disabled = true;
       saveBtn.textContent = 'Saving…';
       setSyncStatus('⟳ Saving…');
       try {
-        const res = await fetch('/.netlify/functions/tasks', {
+        const res = await fetch(getFullApiUrl(`/notes/${HACKMD_CONFIG.TASKS_NOTE_ID}`), {
           method: 'PATCH',
-          headers: { 'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json' },
+          headers: { 
+            'Authorization': 'Bearer ' + HACKMD_CONFIG.API_TOKEN, 
+            'Content-Type': 'application/json' 
+          },
           body: JSON.stringify({ content: toMarkdown() })
         });
-        if (res.status === 401) { sessionStorage.removeItem('dash_token'); location.reload(); return; }
         if (!res.ok) throw new Error('Save failed');
         hasChanges = false;
         showStatus('Saved to HackMD ✓');
@@ -2623,12 +3157,21 @@
     }
 
     async function loadMemoryFromAPI() {
+      if (!HACKMD_CONFIG.API_TOKEN) {
+        showStatus('Error: HackMD API Token is not configured');
+        return;
+      }
       try {
-        const res = await fetch('/.netlify/functions/memory', {
-          headers: { 'Authorization': 'Bearer ' + authToken }
+        const res = await fetch(getFullApiUrl(`/notes/${HACKMD_CONFIG.MEMORY_NOTE_ID}`), {
+          headers: { 'Authorization': 'Bearer ' + HACKMD_CONFIG.API_TOKEN }
         });
-        if (res.status === 401) { sessionStorage.removeItem('dash_token'); location.reload(); return; }
-        if (!res.ok) throw new Error('Failed to load memory');
+        if (!res.ok) {
+          if (res.status === 401) {
+            showAuthError();
+            throw new Error('Unauthorized');
+          }
+          throw new Error('Failed to load memory');
+        }
         const data = await res.json();
         memoryData = { claudeMd: { content: data.content }, memoryFiles: [], memoryDirs: {} };
         renderMemory();
@@ -3033,6 +3576,12 @@
 
     async function saveModal() {
       const type = modalOverlay.dataset.type;
+      
+      if (type === 'settings') {
+        if (onSettingsSave) onSettingsSave();
+        return;
+      }
+
       const content = document.getElementById('editContent').value;
 
       try {
@@ -3102,14 +3651,19 @@
     }
 
     // Memory event listeners
-    // ===== INIT DASHBOARD (called after password unlock) =====
+    // ===== INIT DASHBOARD =====
     async function initDashboard() {
+      if (!HACKMD_CONFIG.API_TOKEN || !HACKMD_CONFIG.TASKS_NOTE_ID) {
+        showStatus('Please configure your HackMD settings');
+        showSettingsModal();
+        return;
+      }
       loadTasksFromAPI();
       loadMemoryFromAPI();
+      loadArticlesFromAPI();
     }
 
-    // Auto-init if token already existed (skipped password gate)
-    if (authToken) { initDashboard(); }
+    initDashboard();
     document.getElementById('modalClose').addEventListener('click', closeModal);
     document.getElementById('modalCancel').addEventListener('click', closeModal);
     document.getElementById('modalSave').addEventListener('click', saveModal);
@@ -3127,6 +3681,279 @@
     window.openNewFileModal = openNewFileModal;
     window.openEditModal = openEditModal;
     window.filterMemoryDirectory = filterMemoryDirectory;
+
+    // ============================================================
+    // ===== ARTICLES FUNCTIONALITY =====
+    // ============================================================
+
+    const STATUS_CYCLE = ['not-read', 'reading', 'read'];
+    const STATUS_LABELS = { 'not-read': 'Not Read', 'reading': 'Reading…', 'read': 'Read ✓' };
+
+    // In-memory state (source of truth, loaded from HackMD)
+    let articlesList = [];
+    let hasArticleChanges = false;
+
+    function markArticleChanged() {
+      hasArticleChanges = true;
+      articlesSaveBtn.disabled = false;
+    }
+
+    // ── Markdown serialisation ──────────────────────────────────
+    function articlesToMarkdown(articles) {
+      const rows = articles.map(a =>
+        `| ${a.id} | ${a.name.replace(/\|/g, '\\|')} | ${a.link} | ${a.status || 'not-read'} | ${a.progress ?? 0} |`
+      ).join('\n');
+      return `# Articles\n\n| id | name | link | status | progress |\n| -- | ---- | ---- | ------ | -------- |\n${rows}\n`;
+    }
+
+    function parseArticlesMarkdown(content) {
+      const articles = [];
+      const lines = (content || '').split('\n');
+      let inTable = false;
+      for (const line of lines) {
+        if (!inTable) {
+          if (line.startsWith('| id |') || line.startsWith('| id|')) { inTable = true; }
+          continue;
+        }
+        if (/^\|[-| ]+\|/.test(line)) continue; // separator row
+        if (!line.startsWith('|')) { inTable = false; continue; }
+        const cells = line.split('|').slice(1, -1).map(c => c.trim());
+        if (cells.length < 3) continue;
+        const id = parseInt(cells[0], 10);
+        if (isNaN(id)) continue;
+        articles.push({
+          id,
+          name: (cells[1] || '').replace(/\\\|/g, '|'),
+          link: cells[2] || '',
+          status: cells[3] || 'not-read',
+          progress: parseInt(cells[4] || '0', 10) || 0,
+        });
+      }
+      return articles;
+    }
+
+    // ── Render ──────────────────────────────────────────────────
+    function renderArticles() {
+      const articles = articlesList;
+      const statsEl = document.getElementById('articlesStats');
+      const containerEl = document.getElementById('articlesContainer');
+
+      const total = articles.length;
+      const readCount = articles.filter(a => a.status === 'read').length;
+      const readingCount = articles.filter(a => a.status === 'reading').length;
+
+      statsEl.innerHTML = `
+        <div class="articles-stat">
+          <span class="articles-stat-value">${total}</span>
+          <span class="articles-stat-label">Total</span>
+        </div>
+        <div class="articles-stat stat-read">
+          <span class="articles-stat-value">${readCount}</span>
+          <span class="articles-stat-label">Read</span>
+        </div>
+        <div class="articles-stat stat-reading">
+          <span class="articles-stat-value">${readingCount}</span>
+          <span class="articles-stat-label">Reading</span>
+        </div>
+        <div class="articles-stat">
+          <span class="articles-stat-value">${total - readCount - readingCount}</span>
+          <span class="articles-stat-label">Not Started</span>
+        </div>
+      `;
+
+      if (total === 0) {
+        containerEl.innerHTML = `<div class="empty-state" style="padding:40px 0;"><p style="font-size:15px;color:var(--text-muted);">No articles yet — add one above.</p></div>`;
+        return;
+      }
+
+      containerEl.innerHTML = articles.map((article, idx) => {
+        const pct = article.progress || 0;
+        const isFull = pct === 100;
+        let shortLink = article.link;
+        try { shortLink = new URL(article.link).hostname.replace('www.', ''); } catch {}
+        return `
+          <div class="article-card" id="article-card-${article.id}">
+            <div class="article-card-progress-bar">
+              <div class="article-card-progress-fill ${isFull ? 'full' : ''}" style="width:${pct}%"></div>
+            </div>
+            <div class="article-card-body">
+              <div class="article-num">${idx + 1}</div>
+              <div class="article-card-main">
+                <div class="article-title-row">
+                  <a class="article-title-link" href="${escapeHtml(article.link)}" target="_blank" rel="noopener">${escapeHtml(article.name)}</a>
+                  <span class="article-ext-icon">↗ ${escapeHtml(shortLink)}</span>
+                </div>
+                <div class="article-controls">
+                  <button class="article-status-btn ${article.status}" onclick="cycleArticleStatus(${article.id})">${STATUS_LABELS[article.status] || article.status}</button>
+                  <div class="article-progress-group">
+                    <input type="range" min="0" max="100" value="${pct}" class="article-progress-input"
+                      oninput="updateArticleProgress(${article.id}, this.value)"
+                      onchange="updateArticleProgress(${article.id}, this.value)">
+                    <span class="article-progress-pct" id="article-pct-${article.id}">${pct}%</span>
+                  </div>
+                </div>
+              </div>
+              <button class="article-delete-btn" onclick="deleteArticle(${article.id})" title="Remove article">✕</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ── Actions ─────────────────────────────────────────────────
+    window.cycleArticleStatus = function(id) {
+      const article = articlesList.find(a => a.id === id);
+      if (!article) return;
+      const currentIdx = STATUS_CYCLE.indexOf(article.status);
+      article.status = STATUS_CYCLE[(currentIdx + 1) % STATUS_CYCLE.length];
+      if (article.status === 'read') article.progress = 100;
+      markArticleChanged();
+      renderArticles();
+    };
+
+    window.updateArticleProgress = function(id, value) {
+      const article = articlesList.find(a => a.id === id);
+      if (!article) return;
+      const pct = parseInt(value, 10);
+      article.progress = pct;
+      if (pct === 100) article.status = 'read';
+      else if (pct > 0) article.status = 'reading';
+      else article.status = 'not-read';
+      markArticleChanged();
+      // Live DOM update (no full re-render)
+      const fill = document.querySelector(`#article-card-${id} .article-card-progress-fill`);
+      const pctLabel = document.getElementById(`article-pct-${id}`);
+      const statusBtn = document.querySelector(`#article-card-${id} .article-status-btn`);
+      if (fill) { fill.style.width = pct + '%'; fill.className = 'article-card-progress-fill' + (pct === 100 ? ' full' : ''); }
+      if (pctLabel) pctLabel.textContent = pct + '%';
+      if (statusBtn) { statusBtn.className = 'article-status-btn ' + article.status; statusBtn.textContent = STATUS_LABELS[article.status]; }
+      // Update stats
+      const total = articlesList.length;
+      const readCount = articlesList.filter(a => a.status === 'read').length;
+      const readingCount = articlesList.filter(a => a.status === 'reading').length;
+      const statsEl = document.getElementById('articlesStats');
+      if (statsEl) {
+        const vals = statsEl.querySelectorAll('.articles-stat-value');
+        if (vals[1]) vals[1].textContent = readCount;
+        if (vals[2]) vals[2].textContent = readingCount;
+        if (vals[3]) vals[3].textContent = total - readCount - readingCount;
+      }
+    };
+
+    window.deleteArticle = function(id) {
+      articlesList = articlesList.filter(a => a.id !== id);
+      markArticleChanged();
+      renderArticles();
+    };
+
+    // ── Add form ─────────────────────────────────────────────────
+    const articlesAddToggle = document.getElementById('articlesAddToggle');
+    const articleAddForm = document.getElementById('articleAddForm');
+    const articleNameInput = document.getElementById('articleNameInput');
+    const articleLinkInput = document.getElementById('articleLinkInput');
+
+    articlesAddToggle.addEventListener('click', () => {
+      articleAddForm.classList.toggle('visible');
+      if (articleAddForm.classList.contains('visible')) articleNameInput.focus();
+    });
+
+    document.getElementById('articleCancelBtn').addEventListener('click', () => {
+      articleAddForm.classList.remove('visible');
+      articleNameInput.value = '';
+      articleLinkInput.value = '';
+    });
+
+    function submitNewArticle() {
+      const name = articleNameInput.value.trim();
+      const link = articleLinkInput.value.trim();
+      if (!name) { articleNameInput.focus(); return; }
+      if (!link) { articleLinkInput.focus(); return; }
+      const newId = articlesList.length > 0 ? Math.max(...articlesList.map(a => a.id)) + 1 : 1;
+      articlesList.push({ id: newId, name, link, status: 'not-read', progress: 0 });
+      articleNameInput.value = '';
+      articleLinkInput.value = '';
+      articleAddForm.classList.remove('visible');
+      markArticleChanged();
+      renderArticles();
+      showStatus('Article added — save to HackMD to persist');
+    }
+
+    document.getElementById('articleSaveBtn').addEventListener('click', submitNewArticle);
+    articleLinkInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitNewArticle(); });
+    articleNameInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') articleLinkInput.focus(); });
+
+    // ── HackMD load / save ───────────────────────────────────────
+    async function loadArticlesFromAPI() {
+      if (!HACKMD_CONFIG.API_TOKEN) {
+        showStatus('Error: HackMD API Token is not configured');
+        return;
+      }
+      setSyncStatus('⟳ Loading…');
+      try {
+        const res = await fetch(getFullApiUrl(`/notes/${HACKMD_CONFIG.ARTICLES_NOTE_ID}`), {
+          headers: { 'Authorization': 'Bearer ' + HACKMD_CONFIG.API_TOKEN }
+        });
+        if (!res.ok) {
+          if (res.status === 401) {
+            showAuthError();
+            throw new Error('Unauthorized');
+          }
+          throw new Error('Failed to load');
+        }
+        const data = await res.json();
+        articlesList = parseArticlesMarkdown(data.content);
+        // Seed initial article if note is empty
+        if (articlesList.length === 0) {
+          articlesList = [{ id: 1, name: 'Building an AI Assistant into a Web App — What I Learned and Where I Think This Is Going', link: 'https://medium.com/@dominicbachmann/building-an-ai-assistant-into-a-web-app-what-i-learned-and-where-i-think-this-is-going-8d8642a9623c', status: 'not-read', progress: 0 }];
+          markArticleChanged(); // auto-save seed on first use
+        } else {
+          hasArticleChanges = false;
+          articlesSaveBtn.disabled = true;
+        }
+        renderArticles();
+        setSyncStatus('✓ Synced with HackMD', 'var(--accent)');
+        setTimeout(() => setSyncStatus(''), 3000);
+      } catch (e) {
+        setSyncStatus('⚠ Articles load failed', '#e55');
+        showStatus('Error loading articles: ' + e.message);
+        renderArticles();
+      }
+    }
+
+    articlesSaveBtn.addEventListener('click', async () => {
+      if (!hasArticleChanges) return;
+      if (!HACKMD_CONFIG.API_TOKEN) {
+        showStatus('Error: HackMD API Token is not configured');
+        return;
+      }
+      articlesSaveBtn.disabled = true;
+      articlesSaveBtn.textContent = 'Saving…';
+      setSyncStatus('⟳ Saving…');
+      try {
+        const res = await fetch(getFullApiUrl(`/notes/${HACKMD_CONFIG.ARTICLES_NOTE_ID}`), {
+          method: 'PATCH',
+          headers: { 
+            'Authorization': 'Bearer ' + HACKMD_CONFIG.API_TOKEN, 
+            'Content-Type': 'application/json' 
+          },
+          body: JSON.stringify({ content: articlesToMarkdown(articlesList) })
+        });
+        if (!res.ok) throw new Error('Save failed');
+        hasArticleChanges = false;
+        showStatus('Saved to HackMD ✓');
+        setSyncStatus('✓ Saved', 'var(--accent)');
+        setTimeout(() => setSyncStatus(''), 3000);
+      } catch (e) {
+        showStatus('Error saving: ' + e.message);
+        setSyncStatus('⚠ Save failed', '#e55');
+        articlesSaveBtn.disabled = false;
+      }
+      articlesSaveBtn.textContent = 'Save to HackMD';
+    });
+
+    window.addEventListener('beforeunload', (e) => {
+      if (hasArticleChanges) { e.preventDefault(); e.returnValue = ''; }
+    });
   </script>
 </body>
 </html>
