@@ -7,4 +7,5 @@ dist/
 .env
 .junie/
 .qodo
-.claude
+.claude.playwright-mcp/
+*.png
