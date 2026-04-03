@@ -211,6 +211,7 @@ Theme selection persists in `localStorage`.
 - No secrets are hardcoded in source
 - Token and note IDs are injected at runtime via the Settings UI only
 - All API calls go through your own Cloudflare Worker — never directly from the browser to HackMD
+- The API token is stored in `localStorage`, which is readable by browser extensions and any JS running on the same origin. Avoid deploying this dashboard on a shared or public origin, and use a HackMD token scoped to the minimum required permissions
 
 ---
 
