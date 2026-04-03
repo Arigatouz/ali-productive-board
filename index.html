@@ -27,6 +27,21 @@
       --shadow-hover: rgba(20, 20, 19, 0.08);
     }
 
+    :root[data-theme="dark"] {
+      --bg-primary: #141416;
+      --bg-secondary: #1c1d21;
+      --bg-card: #22242a;
+      --text-primary: #f2f2f0;
+      --text-secondary: #cbcbd1;
+      --text-muted: #9899a3;
+      --accent: #ef8b6c;
+      --accent-hover: #f39a7f;
+      --border: #33353d;
+      --border-light: #2b2d34;
+      --shadow: rgba(0, 0, 0, 0.35);
+      --shadow-hover: rgba(0, 0, 0, 0.5);
+    }
+
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       background: var(--bg-primary);
@@ -94,6 +109,15 @@
     }
 
     .buttons { display: flex; gap: 12px; }
+
+    .theme-toggle-btn {
+      min-width: 74px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 12px;
+    }
 
     button {
       background: var(--bg-card);
@@ -859,6 +883,42 @@
 
     .memory-card-field-value {
       color: var(--text-secondary);
+    }
+
+    .memory-section-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      box-shadow: 0 1px 3px var(--shadow);
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+
+    .memory-section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-light);
+      background: var(--bg-secondary);
+    }
+
+    .memory-section-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .memory-section-body {
+      padding: 14px 16px;
+    }
+
+    .memory-inline-list {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--text-secondary);
+      line-height: 1.7;
     }
 
     .file-card {
@@ -1690,6 +1750,7 @@
     </div>
     <div class="buttons">
       <span id="syncStatus" style="font-size:13px;color:var(--text-muted);display:flex;align-items:center;gap:6px;"></span>
+      <button id="themeToggleBtn" class="theme-toggle-btn" title="Toggle theme">🌙 Dark</button>
       <button id="settingsBtn" title="Settings" style="padding: 10px; display: flex; align-items: center;">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"></circle>
@@ -1897,6 +1958,23 @@
     const statusEl = document.getElementById('status');
     const filePathEl = document.getElementById('filePath');
     const syncStatusEl = document.getElementById('syncStatus');
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+
+    function applyTheme(theme) {
+      const safeTheme = theme === 'dark' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', safeTheme);
+      localStorage.setItem('dashboard_theme', safeTheme);
+      themeToggleBtn.textContent = safeTheme === 'dark' ? '☀️ Light' : '🌙 Dark';
+    }
+
+    function initTheme() {
+      const savedTheme = localStorage.getItem('dashboard_theme') || 'light';
+      applyTheme(savedTheme);
+      themeToggleBtn.addEventListener('click', () => {
+        const current = document.documentElement.getAttribute('data-theme') || 'light';
+        applyTheme(current === 'dark' ? 'light' : 'dark');
+      });
+    }
 
     function showStatus(msg) {
       statusEl.textContent = msg;
@@ -3095,90 +3173,102 @@
       return div.innerHTML;
     }
 
+    const MEMORY_SECTION_ORDER = ['Me', 'People', 'Terms', 'Projects', 'Preferences'];
+
+    function detectMemorySectionType(title, content) {
+      if (title === 'People' || title === 'Terms' || title === 'Projects') return 'table';
+      if (title === 'Preferences') return 'list';
+      if (/^\s*\|.+\|\s*$/m.test(content)) return 'table';
+      if (/^\s*[-*]\s+.+$/m.test(content)) return 'list';
+      return 'text';
+    }
+
     function parseMemoryMarkdown(content) {
       const parsed = {
-        title: '',
-        metadata: {},
-        sections: [],
+        title: 'Memory',
+        intro: [],
+        sectionOrder: [],
+        sections: {},
         rawContent: content
       };
 
       const lines = content.split('\n');
       let currentSection = null;
 
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        const h1Match = line.match(/^# (.*)$/);
-        const h2Match = line.match(/^## (.*)$/);
-        const h3Match = line.match(/^### (.*)$/);
-        const kvMatch = line.match(/^\*\*(.+?):\*\*\s*(.*)$/);
+      for (const line of lines) {
+        const h1Match = line.match(/^#\s+(.+)$/);
+        const h2Match = line.match(/^##\s+(.+)$/);
 
         if (h1Match) {
-          parsed.title = h1Match[1].trim();
-        } else if (h2Match) {
-          currentSection = {
-            title: h2Match[1].trim(),
-            level: 2,
-            content: [],
-            metadata: {},
-            subsections: []
-          };
-          parsed.sections.push(currentSection);
-        } else if (h3Match) {
-          const subSection = {
-            title: h3Match[1].trim(),
-            level: 3,
-            content: [],
-            metadata: {}
-          };
-          if (currentSection) {
-            currentSection.subsections.push(subSection);
-          } else {
-            // If no H2 yet, treat H3 as a top-level section
-            currentSection = {
-              title: subSection.title,
-              level: 2, // promote for layout consistency
-              content: [],
-              metadata: {},
-              subsections: []
+          parsed.title = h1Match[1].trim() || parsed.title;
+          continue;
+        }
+
+        if (h2Match) {
+          currentSection = h2Match[1].trim();
+          if (!parsed.sections[currentSection]) {
+            parsed.sectionOrder.push(currentSection);
+            parsed.sections[currentSection] = {
+              title: currentSection,
+              rawLines: []
             };
-            parsed.sections.push(currentSection);
           }
-        } else if (kvMatch) {
-          const key = kvMatch[1].trim();
-          const value = kvMatch[2].trim();
-          if (currentSection) {
-            const activeSub = currentSection.subsections[currentSection.subsections.length - 1];
-            if (activeSub) {
-              activeSub.metadata[key] = value;
-            } else {
-              currentSection.metadata[key] = value;
-            }
-          } else {
-            parsed.metadata[key] = value;
-          }
-        } else if (line.trim() || (currentSection && currentSection.content.length > 0)) {
-          // Add content to the most specific active scope
-          if (currentSection) {
-            const activeSub = currentSection.subsections[currentSection.subsections.length - 1];
-            if (activeSub) {
-              activeSub.content.push(line);
-            } else {
-              currentSection.content.push(line);
-            }
-          }
+          continue;
+        }
+
+        if (currentSection) {
+          parsed.sections[currentSection].rawLines.push(line);
+        } else {
+          parsed.intro.push(line);
         }
       }
 
-      // Final cleanup of content arrays
-      parsed.sections.forEach(s => {
-        s.content = s.content.join('\n').trim();
-        s.subsections.forEach(sub => {
-          sub.content = sub.content.join('\n').trim();
-        });
+      for (const sectionName of parsed.sectionOrder) {
+        const section = parsed.sections[sectionName];
+        const contentText = section.rawLines.join('\n').trim();
+        section.content = contentText;
+        section.type = detectMemorySectionType(sectionName, contentText);
+      }
+
+      for (const required of MEMORY_SECTION_ORDER) {
+        if (!parsed.sections[required]) {
+          parsed.sectionOrder.push(required);
+          parsed.sections[required] = {
+            title: required,
+            rawLines: [],
+            content: '',
+            type: detectMemorySectionType(required, '')
+          };
+        }
+      }
+
+      parsed.sectionOrder.sort((a, b) => {
+        const ai = MEMORY_SECTION_ORDER.indexOf(a);
+        const bi = MEMORY_SECTION_ORDER.indexOf(b);
+        if (ai === -1 && bi === -1) return a.localeCompare(b);
+        if (ai === -1) return 1;
+        if (bi === -1) return -1;
+        return ai - bi;
       });
 
       return parsed;
+    }
+
+    function serializeMemoryMarkdown(parsed) {
+      const lines = [`# ${parsed.title || 'Memory'}`];
+
+      const intro = (parsed.intro || []).join('\n').trim();
+      if (intro) lines.push('', intro);
+
+      for (const sectionName of parsed.sectionOrder) {
+        const section = parsed.sections[sectionName];
+        lines.push('', `## ${sectionName}`);
+        if ((section.content || '').trim()) {
+          lines.push(section.content.trim());
+        }
+      }
+
+      return lines.join('\n').replace(/\n{3,}/g, '\n\n').trim() + '\n';
     }
 
     function getPreview(content, maxLength = 150) {
@@ -3218,7 +3308,8 @@
           throw new Error('Failed to load memory');
         }
         const data = await res.json();
-        memoryData = { claudeMd: { content: data.content }, memoryFiles: [], memoryDirs: {} };
+        const parsed = parseMemoryMarkdown(data.content);
+        memoryData = { claudeMd: { content: data.content, parsed }, memoryFiles: [], memoryDirs: {} };
         renderMemory();
         memoryEmptyState.style.display = 'none';
         memoryMainContent.style.display = 'flex';
@@ -3243,41 +3334,9 @@
     }
 
     function renderMemoryTabs() {
-      let html = '';
-
-      if (memoryData.claudeMd) {
-        html += `<button class="memory-tab active" data-tab="overview">Overview</button>`;
-      }
-
-      for (const file of memoryData.memoryFiles) {
-        const name = file.name.replace('.md', '');
-        html += `<button class="memory-tab${!memoryData.claudeMd && memoryData.memoryFiles[0] === file ? ' active' : ''}" data-tab="file-${name}">${name}</button>`;
-      }
-
-      for (const dirName of Object.keys(memoryData.memoryDirs).sort()) {
-        const files = memoryData.memoryDirs[dirName];
-        let count;
-        if (dirName === 'context') {
-          count = 0;
-          for (const file of files) {
-            const p = file.parsed;
-            count += Object.keys(p.fields).length;
-            for (const table of p.tables) {
-              count += table.rows.length;
-            }
-            for (const [sName, sContent] of Object.entries(p.sections)) {
-              if (sContent && sName !== '_intro') {
-                count += sContent.split('\n').filter(l => l.trim() && !l.trim().startsWith('|')).length;
-              }
-            }
-          }
-        } else {
-          count = files.length;
-        }
-        html += `<button class="memory-tab" data-tab="dir-${dirName}">${dirName} <span class="count">${count}</span></button>`;
-      }
-
-      memoryTabsContainer.innerHTML = html;
+      memoryTabsContainer.innerHTML = memoryData.claudeMd
+        ? `<button class="memory-tab active" data-tab="overview">Overview</button>`
+        : '';
 
       memoryTabsContainer.querySelectorAll('.memory-tab').forEach(tab => {
         tab.addEventListener('click', () => {
@@ -3286,6 +3345,24 @@
           renderMemoryContent();
         });
       });
+    }
+
+    async function saveMemoryNoteContent(content) {
+      const res = await fetch(getFullApiUrl(`/notes/${HACKMD_CONFIG.MEMORY_NOTE_ID}`), {
+        method: 'PATCH',
+        headers: {
+          'Authorization': 'Bearer ' + HACKMD_CONFIG.API_TOKEN,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ content })
+      });
+      if (!res.ok) {
+        if (res.status === 401) {
+          showAuthError();
+          throw new Error('Unauthorized');
+        }
+        throw new Error('Failed to save memory note');
+      }
     }
 
     function renderMemoryContent() {
@@ -3304,101 +3381,76 @@
       }
     }
 
+    function parseMarkdownTable(raw) {
+      const lines = raw.split('\n').map(line => line.trim()).filter(line => line.startsWith('|'));
+      if (lines.length < 2) return null;
+      const headers = lines[0].split('|').map(cell => cell.trim()).filter(Boolean);
+      const rows = lines.slice(2).map(line => line.split('|').map(cell => cell.trim()).filter(Boolean));
+      return { headers, rows };
+    }
+
+    function renderMemorySectionBody(section) {
+      if (!section.content) {
+        return '<p style="color: var(--text-muted);">No content yet. Click Edit to add details.</p>';
+      }
+
+      if (section.type === 'table') {
+        const table = parseMarkdownTable(section.content);
+        if (table && table.headers.length) {
+          let html = '<table class="memory-flat-table"><thead><tr>';
+          table.headers.forEach(header => {
+            html += `<th>${escapeHtml(header)}</th>`;
+          });
+          html += '</tr></thead><tbody>';
+          table.rows.forEach(row => {
+            html += '<tr>';
+            row.forEach(cell => {
+              html += `<td>${escapeHtml(cell)}</td>`;
+            });
+            html += '</tr>';
+          });
+          html += '</tbody></table>';
+          return html;
+        }
+      }
+
+      if (section.type === 'list') {
+        const items = section.content.split('\n').map(line => line.trim()).filter(Boolean);
+        if (items.length) {
+          return `<ul class="memory-inline-list">${items.map(item => `<li>${escapeHtml(item.replace(/^[-*]\s+/, ''))}</li>`).join('')}</ul>`;
+        }
+      }
+
+      return `<div class="markdown-content">${renderMarkdownToHtml(section.content)}</div>`;
+    }
+
     function renderMemoryOverview() {
-      if (!memoryData.claudeMd) return;
+      if (!memoryData.claudeMd || !memoryData.claudeMd.parsed) return;
 
-      const p = parseMemoryMarkdown(memoryData.claudeMd.content);
-      let html = '';
+      const parsed = memoryData.claudeMd.parsed;
+      let html = `<h1 class="memory-title" style="margin-bottom: 20px;">${escapeHtml(parsed.title)}</h1>`;
 
-      if (p.title) {
-        html += `<h1 class="memory-title" style="margin-bottom: 20px;">${escapeHtml(p.title)}</h1>`;
-      }
-
-      // Render top-level metadata (if any)
-      if (Object.keys(p.metadata).length > 0) {
-        html += '<div class="memory-card-fields" style="margin-bottom: 20px; background: var(--bg-secondary); padding: 15px; border-radius: 12px; border: 1px solid var(--border);">';
-        for (const [key, value] of Object.entries(p.metadata)) {
-          html += `
-            <div class="memory-card-field">
-              <span class="memory-card-field-label">${escapeHtml(key)}</span>
-              <span class="memory-card-field-value">${escapeHtml(value)}</span>
+      parsed.sectionOrder.forEach(sectionName => {
+        const section = parsed.sections[sectionName];
+        html += `
+          <div class="memory-section-card">
+            <div class="memory-section-header">
+              <div class="memory-section-title">${escapeHtml(sectionName)}</div>
+              <button class="primary memory-edit-btn" data-section-name="${escapeHtml(sectionName)}">Edit</button>
             </div>
-          `;
-        }
-        html += '</div>';
-      }
-
-      // Render sections (H2 cards)
-      html += '<div class="memory-grid" style="grid-template-columns: 1fr;">';
-      for (const section of p.sections) {
-        let sectionHtml = `
-          <div class="file-card" style="margin-bottom: 20px;">
-            <div class="file-card-header" onclick="this.nextElementSibling.classList.toggle('expanded'); this.querySelector('.toggle').textContent = this.nextElementSibling.classList.contains('expanded') ? '\u2212' : '+'">
-              <span class="file-card-title">${escapeHtml(section.title)}</span>
-              <span class="toggle" style="color: var(--text-muted);">&minus;</span>
-            </div>
-            <div class="file-card-content expanded">
-        `;
-
-        // Section metadata
-        if (Object.keys(section.metadata).length > 0) {
-          sectionHtml += '<div class="memory-card-fields" style="margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px;">';
-          for (const [key, value] of Object.entries(section.metadata)) {
-            sectionHtml += `
-              <div class="memory-card-field">
-                <span class="memory-card-field-label">${escapeHtml(key)}</span>
-                <span class="memory-card-field-value">${escapeHtml(value)}</span>
-              </div>
-            `;
-          }
-          sectionHtml += '</div>';
-        }
-
-        // Section content
-        if (section.content) {
-          sectionHtml += `<div class="markdown-content" style="margin-bottom: 15px;">${renderMarkdownToHtml(section.content)}</div>`;
-        }
-
-        // Subsections (H3)
-        if (section.subsections.length > 0) {
-          for (const sub of section.subsections) {
-            sectionHtml += `
-              <div class="memory-sub-section" style="margin-top: 15px; border-top: 1px dashed var(--border); padding-top: 10px;">
-                <h3 style="margin-bottom: 8px; color: var(--accent); font-size: 1.1em;">${escapeHtml(sub.title)}</h3>
-            `;
-
-            if (Object.keys(sub.metadata).length > 0) {
-              sectionHtml += '<div class="memory-card-fields" style="margin-bottom: 8px;">';
-              for (const [key, value] of Object.entries(sub.metadata)) {
-                sectionHtml += `
-                  <div class="memory-card-field">
-                    <span class="memory-card-field-label">${escapeHtml(key)}</span>
-                    <span class="memory-card-field-value">${escapeHtml(value)}</span>
-                  </div>
-                `;
-              }
-              sectionHtml += '</div>';
-            }
-
-            if (sub.content) {
-              sectionHtml += `<div class="markdown-content">${renderMarkdownToHtml(sub.content)}</div>`;
-            }
-            sectionHtml += '</div>';
-          }
-        }
-
-        sectionHtml += `
+            <div class="memory-section-body">
+              ${renderMemorySectionBody(section)}
             </div>
           </div>
         `;
-        html += sectionHtml;
-      }
-      html += '</div>';
-
-      // Footer edit button
-      html += `<button onclick="openEditModal('HackMD Note', 'claudeMd')" style="margin-top: 20px;">Edit Note in HackMD</button>`;
+      });
 
       memoryContentContainer.innerHTML = html;
+      memoryContentContainer.querySelectorAll('.memory-edit-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          openMemorySectionEditor(btn.dataset.sectionName);
+        });
+      });
     }
 
     function renderMemoryFile(fileName) {
@@ -3645,26 +3697,22 @@
       modalOverlay.dataset.dirName = dirName;
     }
 
-    function openEditModal(fileName, type) {
-      let content = '';
-      if (type === 'claudeMd') {
-        content = memoryData.claudeMd.content;
-      } else if (type === 'memoryFile') {
-        const file = memoryData.memoryFiles.find(f => f.name === fileName);
-        if (file) content = file.content;
-      }
+    function openMemorySectionEditor(sectionName) {
+      if (!memoryData.claudeMd || !memoryData.claudeMd.parsed) return;
+      const section = memoryData.claudeMd.parsed.sections[sectionName];
+      if (!section) return;
 
-      document.getElementById('modalTitle').textContent = `Edit ${fileName}`;
+      document.getElementById('modalTitle').textContent = `Edit ${sectionName}`;
       document.getElementById('modalBody').innerHTML = `
         <div class="form-group">
-          <label>Content</label>
-          <textarea id="editContent" style="min-height: 400px;">${escapeHtml(content)}</textarea>
+          <label>${section.type === 'table' ? 'Markdown table' : section.type === 'list' ? 'Bullet list' : 'Content'}</label>
+          <textarea id="editContent" style="min-height: 400px;">${escapeHtml(section.content || '')}</textarea>
         </div>
       `;
 
       modalOverlay.classList.add('visible');
-      modalOverlay.dataset.type = type;
-      modalOverlay.dataset.fileName = fileName;
+      modalOverlay.dataset.type = 'memorySection';
+      modalOverlay.dataset.sectionName = sectionName;
     }
 
     function closeModal() {
@@ -3682,24 +3730,15 @@
       const content = document.getElementById('editContent').value;
 
       try {
-        if (type === 'claudeMd') {
-          memoryData.claudeMd.content = content;
-          const writable = await memoryData.claudeMd.fileHandle.createWritable();
-          await writable.write(content);
-          await writable.close();
-          showStatus('Saved CLAUDE.md');
-
-        } else if (type === 'memoryFile') {
-          const fileName = modalOverlay.dataset.fileName;
-          const file = memoryData.memoryFiles.find(f => f.name === fileName);
-          if (file) {
-            file.content = content;
-            const writable = await file.fileHandle.createWritable();
-            await writable.write(content);
-            await writable.close();
-            showStatus('Saved ' + fileName);
-          }
-
+        if (type === 'memorySection') {
+          const sectionName = modalOverlay.dataset.sectionName;
+          const parsed = memoryData.claudeMd.parsed;
+          if (!parsed || !parsed.sections[sectionName]) throw new Error('Section not found');
+          parsed.sections[sectionName].content = content.trim();
+          memoryData.claudeMd.content = serializeMemoryMarkdown(parsed);
+          await saveMemoryNoteContent(memoryData.claudeMd.content);
+          memoryData.claudeMd.parsed = parseMemoryMarkdown(memoryData.claudeMd.content);
+          showStatus(`Saved ${sectionName} ✓`);
         } else if (type === 'dirFile') {
           const dirName = modalOverlay.dataset.dirName;
           const fileName = modalOverlay.dataset.fileName;
@@ -3708,35 +3747,8 @@
           if (file) {
             file.content = content;
             file.parsed = parseMemoryMarkdown(content);
-            const writable = await file.fileHandle.createWritable();
-            await writable.write(content);
-            await writable.close();
             showStatus('Saved ' + fileName);
           }
-
-        } else if (type === 'newDirFile') {
-          const dirName = modalOverlay.dataset.dirName;
-          let fileName = document.getElementById('newFileName').value.trim();
-          if (!fileName) { showStatus('Please enter a filename'); return; }
-          if (!fileName.endsWith('.md')) fileName += '.md';
-
-          const memoryDir = await memoryDirHandle.getDirectoryHandle('memory');
-          const subDir = await memoryDir.getDirectoryHandle(dirName, { create: true });
-          const fileHandle = await subDir.getFileHandle(fileName, { create: true });
-
-          const writable = await fileHandle.createWritable();
-          await writable.write(content);
-          await writable.close();
-
-          memoryData.memoryDirs[dirName].push({
-            name: fileName,
-            content: content,
-            fileHandle: fileHandle,
-            dirHandle: subDir,
-            parsed: parseMemoryMarkdown(content)
-          });
-
-          showStatus('Created ' + fileName);
         }
 
         closeModal();
@@ -3750,6 +3762,7 @@
     // Memory event listeners
     // ===== INIT DASHBOARD =====
     async function initDashboard() {
+      initTheme();
       if (!HACKMD_CONFIG.API_TOKEN || !HACKMD_CONFIG.TASKS_NOTE_ID) {
         showStatus('Please configure your HackMD settings');
         showSettingsModal();
@@ -3776,7 +3789,7 @@
     // Expose functions to onclick handlers
     window.openFileModal = openFileModal;
     window.openNewFileModal = openNewFileModal;
-    window.openEditModal = openEditModal;
+    window.openMemorySectionEditor = openMemorySectionEditor;
     window.filterMemoryDirectory = filterMemoryDirectory;
 
     // ============================================================
