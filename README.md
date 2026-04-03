@@ -22,8 +22,8 @@ A personal productivity dashboard featuring a **kanban task board**, **memory/no
 
 ```
 ┌─────────────┐       ┌────────────────────┐       ┌─────────────┐
-│   Browser    │ ───▶  │     CORS Proxy     │ ───▶  │  HackMD API │
-│  index.html  │ ◀──── │ (e.g., allorigins) │ ◀──── │  (Markdown)  │
+│   Browser    │ ───▶  │ Private Cloudflare │ ───▶  │  HackMD API │
+│  index.html  │ ◀──── │   Worker Proxy     │ ◀──── │  (Markdown)  │
 └─────────────┘       └────────────────────┘       └─────────────┘
 ```
 
@@ -31,9 +31,46 @@ A personal productivity dashboard featuring a **kanban task board**, **memory/no
 
 The application is a single-file static web page (`index.html`). It uses vanilla JavaScript to interact with the HackMD API directly from your browser.
 
-### CORS & Connectivity
+### CORS & Connectivity (Crucial)
 
-Because HackMD's API does not support direct browser requests (CORS), the app is pre-configured to use a public CORS proxy (`https://api.allorigins.win/`). You can change this proxy in the **Settings** modal if needed.
+Because HackMD's API does not support direct browser requests (CORS), the app requires a CORS proxy. For security and privacy, **it is highly recommended to use your own private Cloudflare Worker proxy.**
+
+#### 🛡️ Setting up a Private Cloudflare Worker Proxy (Free)
+
+1. Create a free account at [cloudflare.com](https://www.cloudflare.com/).
+2. Create a new **Worker** (Workers & Pages > Create application > Create Worker).
+3. Name it (e.g., `hackmd-proxy`).
+4. Click **Deploy**, then **Edit Code**.
+5. Paste the following script and click **Save and Deploy**:
+
+```javascript
+export default {
+  async fetch(request) {
+    const url = new URL(request.url);
+    // Forward requests to HackMD API
+    const targetUrl = 'https://api.hackmd.io/v1' + url.pathname.replace('/hackmd', '');
+    
+    const modifiedRequest = new Request(targetUrl, {
+      method: request.method,
+      headers: request.headers,
+      body: request.body,
+    });
+
+    const response = await fetch(modifiedRequest);
+    
+    // Add CORS headers for your dashboard
+    const newHeaders = new Headers(response.headers);
+    newHeaders.set('Access-Control-Allow-Origin', '*'); // Or your specific GitHub Pages domain
+    newHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    newHeaders.set('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+
+    return new Response(response.body, { status: response.status, headers: newHeaders });
+  }
+};
+```
+
+6. Copy your Worker URL (e.g., `https://hackmd-proxy.yourname.workers.dev/`).
+7. In your Dashboard Settings (gear icon), set the **CORS Proxy** to this URL.
 
 ---
 
@@ -58,9 +95,10 @@ window.HACKMD_ENV = {
   TASKS_NOTE_ID: '',
   MEMORY_NOTE_ID: '',
   ARTICLES_NOTE_ID: '',
-  CORS_PROXY: 'https://api.allorigins.win/raw?url='
+  CORS_PROXY: ''
 };
 ```
+*Note: Using a private Cloudflare Worker (recommended) or a public proxy like `https://api.allorigins.win/raw?url=` if for testing only.*
 *Note: Values in `localStorage` (set via the UI Settings) will always take precedence over `env.js`.*
 
 ---
@@ -75,7 +113,7 @@ If you encounter a **401 Unauthorized** error, follow this checklist:
 
 1. **Verify Token**: Ensure your API token is correctly copied from HackMD Settings > API.
 2. **Check Permissions**: The token must have read and write access to the notes.
-3. **CORS Proxy**: Ensure the CORS proxy is working. If the default proxy is down, try an alternative like `https://corsproxy.io/?`.
+3. **CORS Proxy**: Ensure the CORS proxy is working. **Recommended:** Use your own Cloudflare Worker (see Architecture section).
 4. **Test with curl**: Run this command in your terminal to verify your token and note ID:
    ```bash
    curl -H "Authorization: Bearer YOUR_TOKEN" https://api.hackmd.io/v1/notes/YOUR_NOTE_ID
@@ -84,7 +122,7 @@ If you encounter a **401 Unauthorized** error, follow this checklist:
 | Variable | Description |
 | --- | --- |
 | **API Token** | Your HackMD API bearer token (get it from HackMD Settings > API). |
-| **CORS Proxy** | The proxy used to reach HackMD (Default: allorigins.win). |
+| **CORS Proxy** | The proxy used to reach HackMD (Private Cloudflare Worker recommended). |
 | **Tasks Note ID** | The ID of the HackMD note for your tasks. |
 | **Memory Note ID** | The ID of the HackMD note for your notes. |
 | **Articles Note ID** | The ID of the HackMD note for your reading list. |
