@@ -1859,6 +1859,15 @@
     // Backward-compatible alias in case any runtime path still references `hackmd`.
     const hackmd = HACKMD_CONFIG;
 
+    // ===== DOM ELEMENT DECLARATIONS (moved to top to avoid undefined references) =====
+    const modalOverlay = document.getElementById('modalOverlay');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+    const modalClose = document.getElementById('modalClose');
+    const modalCancel = document.getElementById('modalCancel');
+    const modalSave = document.getElementById('modalSave');
+    const settingsBtn = document.getElementById('settingsBtn');
+
     function getFullApiUrl(path) {
       const baseUrl = 'https://api.hackmd.io/v1';
       const fullUrl = baseUrl + path;
@@ -1879,23 +1888,43 @@
       return fullUrl;
     }
 
-    function saveConfig(config) {
-      HACKMD_CONFIG.API_TOKEN = config.apiToken;
-      HACKMD_CONFIG.TASKS_NOTE_ID = config.tasksId;
-      HACKMD_CONFIG.MEMORY_NOTE_ID = config.memoryId;
-      HACKMD_CONFIG.ARTICLES_NOTE_ID = config.articlesId;
-      HACKMD_CONFIG.CORS_PROXY = config.corsProxy;
+    function normalizeConfigValue(value) {
+      if (value === null || value === undefined) return '';
+      const str = String(value).trim();
+      return str === 'NaN' ? '' : str;
+    }
 
-      localStorage.setItem('hackmd_api_token', config.apiToken);
-      localStorage.setItem('hackmd_tasks_id', config.tasksId);
-      localStorage.setItem('hackmd_memory_id', config.memoryId);
-      localStorage.setItem('hackmd_articles_id', config.articlesId);
-      localStorage.setItem('hackmd_cors_proxy', config.corsProxy);
+    function saveConfig(config) {
+      const apiToken = normalizeConfigValue(config.apiToken);
+      const tasksId = normalizeConfigValue(config.tasksId);
+      const memoryId = normalizeConfigValue(config.memoryId);
+      const articlesId = normalizeConfigValue(config.articlesId);
+      const corsProxy = normalizeConfigValue(config.corsProxy);
+
+      HACKMD_CONFIG.API_TOKEN = apiToken;
+      HACKMD_CONFIG.TASKS_NOTE_ID = tasksId;
+      HACKMD_CONFIG.MEMORY_NOTE_ID = memoryId;
+      HACKMD_CONFIG.ARTICLES_NOTE_ID = articlesId;
+      HACKMD_CONFIG.CORS_PROXY = corsProxy;
+
+      localStorage.setItem('hackmd_api_token', apiToken);
+      localStorage.setItem('hackmd_tasks_id', tasksId);
+      localStorage.setItem('hackmd_memory_id', memoryId);
+      localStorage.setItem('hackmd_articles_id', articlesId);
+      localStorage.setItem('hackmd_cors_proxy', corsProxy);
     }
 
     let onSettingsSave = null;
 
     function showSettingsModal() {
+      const settingsValues = {
+        apiToken: normalizeConfigValue(HACKMD_CONFIG.API_TOKEN),
+        corsProxy: normalizeConfigValue(HACKMD_CONFIG.CORS_PROXY),
+        tasksId: normalizeConfigValue(HACKMD_CONFIG.TASKS_NOTE_ID),
+        memoryId: normalizeConfigValue(HACKMD_CONFIG.MEMORY_NOTE_ID),
+        articlesId: normalizeConfigValue(HACKMD_CONFIG.ARTICLES_NOTE_ID)
+      };
+
       document.getElementById('modalTitle').textContent = 'Settings';
       document.getElementById('modalBody').innerHTML = `
         <div class="settings-form">
@@ -1904,7 +1933,7 @@
             <div class="settings-section-help">Paste your HackMD personal API token. This value is saved only in your browser (localStorage).</div>
             <div class="settings-field">
               <label for="configApiToken">HackMD API Token</label>
-              <input type="password" id="configApiToken" value="${HACKMD_CONFIG.API_TOKEN}" placeholder="Paste your HackMD API token">
+              <input type="password" id="configApiToken" placeholder="Paste your HackMD API token">
               <div class="settings-help">HackMD → Settings → API → API Token</div>
             </div>
           </div>
@@ -1914,7 +1943,7 @@
             <div class="settings-section-help">For GitHub Pages, use your private Cloudflare Worker URL and end it with `/hackmd/`.</div>
             <div class="settings-field">
               <label for="configCorsProxy">CORS Proxy URL</label>
-              <input type="text" id="configCorsProxy" value="${HACKMD_CONFIG.CORS_PROXY}" placeholder="https://your-worker.workers.dev/hackmd/">
+              <input type="text" id="configCorsProxy" placeholder="https://your-worker.workers.dev/hackmd/">
               <div class="settings-help">Recommended: your own Cloudflare Worker proxy.</div>
             </div>
           </div>
@@ -1924,19 +1953,26 @@
             <div class="settings-section-help">Paste the note IDs (the part after https://hackmd.io/) for each board section.</div>
             <div class="settings-field">
               <label for="configTasksId">Tasks Note ID</label>
-              <input type="text" id="configTasksId" value="${HACKMD_CONFIG.TASKS_NOTE_ID}" placeholder="e.g. AbCDefGhIjKlMnOpQrStUv">
+              <input type="text" id="configTasksId" placeholder="e.g. AbCDefGhIjKlMnOpQrStUv">
             </div>
             <div class="settings-field">
               <label for="configMemoryId">Memory Note ID</label>
-              <input type="text" id="configMemoryId" value="${HACKMD_CONFIG.MEMORY_NOTE_ID}" placeholder="e.g. AbCDefGhIjKlMnOpQrStUv">
+              <input type="text" id="configMemoryId" placeholder="e.g. AbCDefGhIjKlMnOpQrStUv">
             </div>
             <div class="settings-field">
               <label for="configArticlesId">Articles Note ID</label>
-              <input type="text" id="configArticlesId" value="${HACKMD_CONFIG.ARTICLES_NOTE_ID}" placeholder="e.g. AbCDefGhIjKlMnOpQrStUv">
+              <input type="text" id="configArticlesId" placeholder="e.g. AbCDefGhIjKlMnOpQrStUv">
             </div>
           </div>
         </div>
       `;
+
+      document.getElementById('configApiToken').value = settingsValues.apiToken;
+      document.getElementById('configCorsProxy').value = settingsValues.corsProxy;
+      document.getElementById('configTasksId').value = settingsValues.tasksId;
+      document.getElementById('configMemoryId').value = settingsValues.memoryId;
+      document.getElementById('configArticlesId').value = settingsValues.articlesId;
+
       modalOverlay.classList.add('visible');
       modalOverlay.dataset.type = 'settings';
       
@@ -3204,7 +3240,6 @@
     const memoryMainContent = document.getElementById('memoryMainContent');
     const memoryTabsContainer = document.getElementById('memoryTabsContainer');
     const memoryContentContainer = document.getElementById('memoryContentContainer');
-    const modalOverlay = document.getElementById('modalOverlay');
 
     function escapeHtml(text) {
       const div = document.createElement('div');
