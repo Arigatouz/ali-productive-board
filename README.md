@@ -37,40 +37,21 @@ Because HackMD's API does not support direct browser requests (CORS), the app re
 
 #### 🛡️ Setting up a Private Cloudflare Worker Proxy (Free)
 
+This repository includes a pre-configured Cloudflare Worker to act as your CORS proxy.
+
 1. Create a free account at [cloudflare.com](https://www.cloudflare.com/).
-2. Create a new **Worker** (Workers & Pages > Create application > Create Worker).
-3. Name it (e.g., `hackmd-proxy`).
-4. Click **Deploy**, then **Edit Code**.
-5. Paste the following script and click **Save and Deploy**:
+2. Fork or push this repository to your GitHub account.
+3. In your Cloudflare dashboard, go to **Workers & Pages** > **Create application** > **Pages** > **Connect to Git**.
+4. Select this repository.
+5. Cloudflare will automatically detect the `wrangler.toml` and deploy the worker logic in `worker/index.js`.
+6. Once deployed, copy your Worker URL (e.g., `https://hackmd-proxy.yourname.workers.dev/`).
+7. In your Dashboard Settings (gear icon), set the **CORS Proxy** to this URL (ensure it ends with `/hackmd/`).
 
-```javascript
-export default {
-  async fetch(request) {
-    const url = new URL(request.url);
-    // Forward requests to HackMD API
-    const targetUrl = 'https://api.hackmd.io/v1' + url.pathname.replace('/hackmd', '');
-    
-    const modifiedRequest = new Request(targetUrl, {
-      method: request.method,
-      headers: request.headers,
-      body: request.body,
-    });
-
-    const response = await fetch(modifiedRequest);
-    
-    // Add CORS headers for your dashboard
-    const newHeaders = new Headers(response.headers);
-    newHeaders.set('Access-Control-Allow-Origin', '*'); // Or your specific GitHub Pages domain
-    newHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    newHeaders.set('Access-Control-Allow-Headers', 'Authorization, Content-Type');
-
-    return new Response(response.body, { status: response.status, headers: newHeaders });
-  }
-};
+**Note:** If you are deploying manually using the Wrangler CLI:
+```bash
+npm install
+npm run worker:deploy
 ```
-
-6. Copy your Worker URL (e.g., `https://hackmd-proxy.yourname.workers.dev/`).
-7. In your Dashboard Settings (gear icon), set the **CORS Proxy** to this URL.
 
 ---
 
