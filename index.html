@@ -1770,13 +1770,24 @@
       TASKS_NOTE_ID: localStorage.getItem('hackmd_tasks_id') || env.TASKS_NOTE_ID || '',
       MEMORY_NOTE_ID: localStorage.getItem('hackmd_memory_id') || env.MEMORY_NOTE_ID || '',
       ARTICLES_NOTE_ID: localStorage.getItem('hackmd_articles_id') || env.ARTICLES_NOTE_ID || '',
-      CORS_PROXY: localStorage.getItem('hackmd_cors_proxy') || env.CORS_PROXY || 'https://api.allorigins.win/raw?url='
+      CORS_PROXY: localStorage.getItem('hackmd_cors_proxy') || env.CORS_PROXY || ''
     };
 
     function getFullApiUrl(path) {
       const baseUrl = 'https://api.hackmd.io/v1';
       const fullUrl = baseUrl + path;
+      
       if (HACKMD_CONFIG.CORS_PROXY) {
+        // Handle Cloudflare Worker style proxy (appends path) vs AllOrigins style (encodes full URL)
+        if (HACKMD_CONFIG.CORS_PROXY.includes('workers.dev')) {
+          // Ensure the proxy URL ends with a slash if it doesn't already
+          const proxyBase = HACKMD_CONFIG.CORS_PROXY.endsWith('/') 
+            ? HACKMD_CONFIG.CORS_PROXY 
+            : HACKMD_CONFIG.CORS_PROXY + '/';
+          // The worker script expects /hackmd/path or just /path depending on implementation.
+          // Our recommended script uses .replace('/hackmd', ''), so we should include it.
+          return `${proxyBase}hackmd${path}`;
+        }
         return HACKMD_CONFIG.CORS_PROXY + encodeURIComponent(fullUrl);
       }
       return fullUrl;
