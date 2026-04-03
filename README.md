@@ -21,21 +21,141 @@ You can run it as a static site (GitHub Pages) or open `index.html` locally.
 
 ### 2) Deploy the Cloudflare Worker proxy
 
-HackMD API requires a proxy for browser-based calls (CORS).
+HackMD's API does not allow direct browser requests (CORS). The Worker in this repo acts as a secure middleman between the app and HackMD. Follow these steps to deploy it.
 
-The Worker code lives in `worker/index.js`. Deploy it:
+---
+
+#### Step 1 — Create a free Cloudflare account
+
+1. Go to [https://dash.cloudflare.com/sign-up](https://dash.cloudflare.com/sign-up)
+2. Enter your email and a password, then click **Create Account**.
+3. Verify your email address when the confirmation email arrives.
+4. You do not need to add a domain. A free account is sufficient.
+
+---
+
+#### Step 2 — Install Node.js (if not already installed)
+
+Wrangler (the Cloudflare CLI) requires Node.js 18 or later.
+
+```bash
+node -v   # check current version
+```
+
+If missing or outdated, download it from [https://nodejs.org](https://nodejs.org) and install the LTS version.
+
+---
+
+#### Step 3 — Install Wrangler
+
+```bash
+npm install -g wrangler
+```
+
+Verify it installed correctly:
+
+```bash
+wrangler -v
+```
+
+---
+
+#### Step 4 — Log in to Cloudflare via Wrangler
+
+```bash
+wrangler login
+```
+
+This opens a browser window asking you to authorize Wrangler. Click **Allow**. You will see a success message in the terminal once done.
+
+---
+
+#### Step 5 — Review the Worker code and config
+
+The Worker code is already written. Two files matter:
+
+| File | Purpose |
+|------|---------|
+| `worker/index.js` | The Worker logic — proxies requests to HackMD |
+| `wrangler.toml` | Deployment config — Worker name, entry point |
+
+Open `wrangler.toml` and update the `name` field if you want a custom URL:
+
+```toml
+name = "ali-productive-board"   # change this to whatever you like
+main = "worker/index.js"
+compatibility_date = "2024-04-03"
+```
+
+The Worker name becomes part of your URL:
+`https://<name>.<your-subdomain>.workers.dev`
+
+---
+
+#### Step 6 — Deploy the Worker
+
+From the root of the project, run:
 
 ```bash
 npx wrangler deploy
 ```
 
-Your configured proxy URL must be:
+A successful deploy looks like this:
+
+```
+✨  Built successfully
+✨  Successfully published your script to
+    https://ali-productive-board.<subdomain>.workers.dev
+```
+
+Copy that URL — you will need it in the next step.
+
+---
+
+#### Step 7 — Verify the Worker is live
+
+Test a proxied call with your HackMD token (fetches your list of notes):
+
+```bash
+curl -i -H "Authorization: Bearer YOUR_HACKMD_TOKEN" \
+  https://<your-worker-url>/hackmd/notes
+```
+
+A successful response returns `200 OK` with a JSON array of your notes. Common errors:
+
+| Status | Meaning |
+|--------|---------|
+| `200` | ✅ Worker is live and token is valid |
+| `401` | Token is invalid or missing |
+| `404` | Path does not match a HackMD endpoint — check spelling |
+
+---
+
+#### Step 8 — Copy the proxy URL for the app settings
+
+Your proxy URL to paste into the app settings is:
 
 ```
 https://<worker-name>.<subdomain>.workers.dev/hackmd/
 ```
 
-> Keep the trailing `/hackmd/`.
+> Keep the trailing `/hackmd/` — the Worker uses it to route requests to HackMD.
+
+---
+
+#### Redeploying after changes
+
+Any time you edit `worker/index.js`, redeploy with:
+
+```bash
+npx wrangler deploy
+```
+
+---
+
+#### Cloudflare free tier limits
+
+The free Workers plan allows **100,000 requests per day**, which is more than enough for a personal dashboard.
 
 ### 3) Generate a HackMD API token
 
