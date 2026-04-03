@@ -8,3 +8,5 @@ dist/
 .junie/
 .qodo
 .claude
+.playwright-mcp/
+*.png
