@@ -1083,6 +1083,15 @@
     }
 
     /* Modal */
+    @keyframes modalFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes modalSlideUp {
+      from { opacity: 0; transform: translateY(16px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
     .modal-overlay {
       display: none;
       position: fixed;
@@ -1090,7 +1099,9 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(20, 20, 19, 0.5);
+      background: rgba(20, 20, 19, 0.45);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
       z-index: 100;
       align-items: center;
       justify-content: center;
@@ -1098,58 +1109,77 @@
 
     .modal-overlay.visible {
       display: flex;
+      animation: modalFadeIn 0.18s ease;
+    }
+
+    .modal-overlay.visible .modal {
+      animation: modalSlideUp 0.22s cubic-bezier(0.34, 1.26, 0.64, 1);
     }
 
     .modal {
       background: var(--bg-card);
-      border-radius: 12px;
+      border-radius: 16px;
       width: 90%;
-      max-width: 800px;
+      max-width: 560px;
       max-height: 85vh;
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      box-shadow: 0 20px 60px rgba(20, 20, 19, 0.2);
+      box-shadow: 0 8px 32px rgba(20, 20, 19, 0.12), 0 32px 80px rgba(20, 20, 19, 0.16), 0 0 0 1px var(--border);
     }
 
     .modal-header {
-      padding: 20px;
+      padding: 20px 24px;
       border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
+      background: var(--bg-secondary);
     }
 
     .modal-header h3 {
-      font-size: 18px;
+      font-size: 15px;
       font-weight: 600;
       color: var(--text-primary);
+      letter-spacing: -0.01em;
     }
 
     .modal-close {
-      background: transparent;
-      border: none;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
       color: var(--text-muted);
-      font-size: 24px;
+      font-size: 16px;
       cursor: pointer;
       padding: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       line-height: 1;
+      transition: color 0.15s, background 0.15s, border-color 0.15s;
     }
 
-    .modal-close:hover { color: var(--text-primary); }
+    .modal-close:hover {
+      color: var(--text-primary);
+      background: var(--bg-primary);
+      border-color: var(--text-muted);
+    }
 
     .modal-body {
-      padding: 20px;
+      padding: 20px 24px;
       overflow-y: auto;
       flex: 1;
     }
 
     .modal-footer {
-      padding: 16px 20px;
+      padding: 14px 24px;
       border-top: 1px solid var(--border);
       display: flex;
       justify-content: flex-end;
-      gap: 10px;
+      gap: 8px;
+      background: var(--bg-secondary);
     }
 
     .form-group {
@@ -1567,6 +1597,100 @@
     .article-card:hover .article-delete-btn { opacity: 1; }
     .article-delete-btn:hover { color: #e55; background: transparent; border-color: transparent; }
 
+    /* ===== SETTINGS UI ===== */
+    .settings-form { display: flex; flex-direction: column; gap: 10px; }
+    .settings-section {
+      border: 1px solid var(--border);
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+    .settings-section::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: var(--accent);
+      border-radius: 3px 0 0 3px;
+      opacity: 0.7;
+    }
+    .settings-section-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .settings-section-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      background: rgba(217, 119, 87, 0.12);
+      border: 1px solid rgba(217, 119, 87, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--accent);
+    }
+    .settings-section-icon svg { width: 14px; height: 14px; }
+    .settings-section-meta { display: flex; flex-direction: column; gap: 2px; }
+    .settings-section-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+    .settings-section-help {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .settings-fields { display: flex; flex-direction: column; gap: 10px; }
+    .settings-field { display: flex; flex-direction: column; gap: 5px; }
+    .settings-field label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .settings-field input {
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      background: var(--bg-card);
+      color: var(--text-primary);
+      width: 100%;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .settings-field input::placeholder { color: var(--text-muted); }
+    .settings-field input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(217, 119, 87, 0.12);
+    }
+    .settings-help {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .settings-help::before {
+      content: '→';
+      color: var(--accent);
+      font-size: 10px;
+      flex-shrink: 0;
+    }
+
     /* ===== GLOBAL RESPONSIVE ===== */
     @media (max-width: 768px) {
       body {
@@ -1703,45 +1827,6 @@
 
       .article-add-form-row { flex-direction: column; }
       .article-add-form input { min-width: 0; width: 100%; }
-
-      /* Settings UI */
-      .settings-form { display: flex; flex-direction: column; gap: 14px; padding: 2px; }
-      .settings-section {
-        border: 1px solid var(--border);
-        background: var(--bg-secondary);
-        border-radius: 12px;
-        padding: 14px;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-      }
-      .settings-section-title {
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--text-primary);
-      }
-      .settings-section-help {
-        font-size: 12px;
-        color: var(--text-muted);
-        line-height: 1.5;
-      }
-      .settings-field { display: flex; flex-direction: column; gap: 6px; }
-      .settings-field label { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
-      .settings-field input { 
-        padding: 10px 12px; 
-        border: 1px solid var(--border); 
-        border-radius: 8px; 
-        font-size: 14px; 
-        background: var(--bg-card);
-        color: var(--text-primary);
-        width: 100%;
-      }
-      .settings-field input:focus {
-        outline: none;
-        border-color: var(--accent);
-        box-shadow: 0 0 0 3px rgba(217, 119, 87, 0.14);
-      }
-      .settings-help { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
     }
   </style>
 </head>
@@ -1934,39 +2019,75 @@
       modalBody.innerHTML = `
         <div class="settings-form">
           <div class="settings-section">
-            <div class="settings-section-title">Authentication</div>
-            <div class="settings-section-help">Paste your HackMD personal API token. This value is saved only in your browser (localStorage).</div>
-            <div class="settings-field">
-              <label for="configApiToken">HackMD API Token</label>
-              <input type="password" id="configApiToken" placeholder="Paste your HackMD API token">
-              <div class="settings-help">HackMD → Settings → API → API Token</div>
+            <div class="settings-section-header">
+              <div class="settings-section-icon">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="11" width="12" height="3" rx="1.5"/>
+                  <circle cx="8" cy="5.5" r="3"/>
+                </svg>
+              </div>
+              <div class="settings-section-meta">
+                <div class="settings-section-title">Authentication</div>
+                <div class="settings-section-help">Stored only in your browser — never sent anywhere else.</div>
+              </div>
+            </div>
+            <div class="settings-fields">
+              <div class="settings-field">
+                <label for="configApiToken">HackMD API Token</label>
+                <input type="password" id="configApiToken" placeholder="Paste your personal API token">
+                <div class="settings-help">HackMD Settings → API → Personal Token</div>
+              </div>
             </div>
           </div>
 
           <div class="settings-section">
-            <div class="settings-section-title">Connectivity</div>
-            <div class="settings-section-help">For GitHub Pages, use your private Cloudflare Worker URL and end it with `/hackmd/`.</div>
-            <div class="settings-field">
-              <label for="configCorsProxy">CORS Proxy URL</label>
-              <input type="text" id="configCorsProxy" placeholder="https://your-worker.workers.dev/hackmd/">
-              <div class="settings-help">Recommended: your own Cloudflare Worker proxy.</div>
+            <div class="settings-section-header">
+              <div class="settings-section-icon">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="8" cy="8" r="6"/>
+                  <path d="M8 2c-2 2-2 10 0 12M2 8h12"/>
+                </svg>
+              </div>
+              <div class="settings-section-meta">
+                <div class="settings-section-title">Connectivity</div>
+                <div class="settings-section-help">GitHub Pages needs a proxy to reach the HackMD API.</div>
+              </div>
+            </div>
+            <div class="settings-fields">
+              <div class="settings-field">
+                <label for="configCorsProxy">CORS Proxy URL</label>
+                <input type="text" id="configCorsProxy" placeholder="https://your-worker.workers.dev/hackmd/">
+                <div class="settings-help">Use your own Cloudflare Worker for reliability</div>
+              </div>
             </div>
           </div>
 
           <div class="settings-section">
-            <div class="settings-section-title">HackMD Note IDs</div>
-            <div class="settings-section-help">Paste the note IDs (the part after https://hackmd.io/) for each board section.</div>
-            <div class="settings-field">
-              <label for="configTasksId">Tasks Note ID</label>
-              <input type="text" id="configTasksId" placeholder="e.g. AbCDefGhIjKlMnOpQrStUv">
+            <div class="settings-section-header">
+              <div class="settings-section-icon">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
+                  <path d="M5 6h6M5 9h4"/>
+                </svg>
+              </div>
+              <div class="settings-section-meta">
+                <div class="settings-section-title">HackMD Note IDs</div>
+                <div class="settings-section-help">The ID is the part after hackmd.io/ in your note URL.</div>
+              </div>
             </div>
-            <div class="settings-field">
-              <label for="configMemoryId">Memory Note ID</label>
-              <input type="text" id="configMemoryId" placeholder="e.g. AbCDefGhIjKlMnOpQrStUv">
-            </div>
-            <div class="settings-field">
-              <label for="configArticlesId">Articles Note ID</label>
-              <input type="text" id="configArticlesId" placeholder="e.g. AbCDefGhIjKlMnOpQrStUv">
+            <div class="settings-fields">
+              <div class="settings-field">
+                <label for="configTasksId">Tasks Note</label>
+                <input type="text" id="configTasksId" placeholder="AbCDefGhIjKlMnOpQrStUv">
+              </div>
+              <div class="settings-field">
+                <label for="configMemoryId">Memory Note</label>
+                <input type="text" id="configMemoryId" placeholder="AbCDefGhIjKlMnOpQrStUv">
+              </div>
+              <div class="settings-field">
+                <label for="configArticlesId">Articles Note</label>
+                <input type="text" id="configArticlesId" placeholder="AbCDefGhIjKlMnOpQrStUv">
+              </div>
             </div>
           </div>
         </div>
