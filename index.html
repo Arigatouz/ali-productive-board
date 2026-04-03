@@ -11,30 +11,52 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* ── LIGHT: neon on aged paper ── */
-    :root {
-      --bg-primary: #f0ede4;
-      --bg-secondary: #e8e4d8;
-      --bg-card: #faf8f2;
-      --text-primary: #1a1a2e;
-      --text-secondary: #2d2d4e;
-      --text-muted: #6b6b8a;
-      --accent: #cc0077;
-      --accent-hover: #aa005f;
-      --accent2: #6600cc;
-      --border: rgba(204, 0, 119, 0.18);
-      --border-light: rgba(204, 0, 119, 0.09);
-      --shadow: rgba(26, 26, 46, 0.06);
-      --shadow-hover: rgba(204, 0, 119, 0.14);
-      --neon-glow: 0 0 6px rgba(204, 0, 119, 0.5), 0 0 18px rgba(204, 0, 119, 0.2);
-      --neon-glow-soft: 0 0 12px rgba(204, 0, 119, 0.15);
+    /* ══ THEME 1: Classic Light ══ */
+    :root, :root[data-theme="light"] {
+      --bg-primary: #faf9f5;
+      --bg-secondary: #F5F4EF;
+      --bg-card: #ffffff;
+      --text-primary: #141413;
+      --text-secondary: #5c5c5a;
+      --text-muted: #8c8c8a;
+      --accent: #D97757;
+      --accent-hover: #c4684a;
+      --accent2: #D97757;
+      --border: #e5e4df;
+      --border-light: #eeeee9;
+      --shadow: rgba(20, 20, 19, 0.04);
+      --shadow-hover: rgba(20, 20, 19, 0.08);
+      --neon-glow: 0 2px 8px rgba(217, 119, 87, 0.2);
+      --neon-glow-soft: 0 1px 4px rgba(20, 20, 19, 0.06);
       --scanline: none;
-      --mono: 'JetBrains Mono', 'Courier New', monospace;
-      --display: 'Rajdhani', 'JetBrains Mono', monospace;
+      --mono: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --display: 'Inter', -apple-system, sans-serif;
     }
 
-    /* ── DARK: full neon cyberpunk ── */
+    /* ══ THEME 2: Classic Dark ══ */
     :root[data-theme="dark"] {
+      --bg-primary: #141416;
+      --bg-secondary: #1c1d21;
+      --bg-card: #22242a;
+      --text-primary: #f2f2f0;
+      --text-secondary: #cbcbd1;
+      --text-muted: #9899a3;
+      --accent: #ef8b6c;
+      --accent-hover: #f39a7f;
+      --accent2: #ef8b6c;
+      --border: #33353d;
+      --border-light: #2b2d34;
+      --shadow: rgba(0, 0, 0, 0.35);
+      --shadow-hover: rgba(0, 0, 0, 0.5);
+      --neon-glow: 0 2px 12px rgba(239, 139, 108, 0.25);
+      --neon-glow-soft: 0 1px 6px rgba(0, 0, 0, 0.3);
+      --scanline: none;
+      --mono: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --display: 'Inter', -apple-system, sans-serif;
+    }
+
+    /* ══ THEME 3: Green Neon Dark ══ */
+    :root[data-theme="neon-dark"] {
       --bg-primary: #080810;
       --bg-secondary: #0d0d1a;
       --bg-card: #0f0f1e;
@@ -50,14 +72,32 @@
       --shadow-hover: rgba(57, 255, 20, 0.12);
       --neon-glow: 0 0 8px #39ff14, 0 0 24px rgba(57, 255, 20, 0.35);
       --neon-glow-soft: 0 0 16px rgba(57, 255, 20, 0.15);
-      --neon-glow-pink: 0 0 8px #ff0090, 0 0 24px rgba(255, 0, 144, 0.35);
       --scanline: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(57, 255, 20, 0.018) 2px,
-        rgba(57, 255, 20, 0.018) 4px
+        0deg, transparent, transparent 2px,
+        rgba(57, 255, 20, 0.018) 2px, rgba(57, 255, 20, 0.018) 4px
       );
+      --mono: 'JetBrains Mono', 'Courier New', monospace;
+      --display: 'Rajdhani', 'JetBrains Mono', monospace;
+    }
+
+    /* ══ THEME 4: Neon Light ══ */
+    :root[data-theme="neon-light"] {
+      --bg-primary: #f0ede4;
+      --bg-secondary: #e8e4d8;
+      --bg-card: #faf8f2;
+      --text-primary: #1a1a2e;
+      --text-secondary: #2d2d4e;
+      --text-muted: #6b6b8a;
+      --accent: #cc0077;
+      --accent-hover: #aa005f;
+      --accent2: #6600cc;
+      --border: rgba(204, 0, 119, 0.18);
+      --border-light: rgba(204, 0, 119, 0.09);
+      --shadow: rgba(26, 26, 46, 0.06);
+      --shadow-hover: rgba(204, 0, 119, 0.14);
+      --neon-glow: 0 0 6px rgba(204, 0, 119, 0.5), 0 0 18px rgba(204, 0, 119, 0.2);
+      --neon-glow-soft: 0 0 12px rgba(204, 0, 119, 0.12);
+      --scanline: none;
       --mono: 'JetBrains Mono', 'Courier New', monospace;
       --display: 'Rajdhani', 'JetBrains Mono', monospace;
     }
@@ -109,6 +149,14 @@
 
     h1 {
       font-family: var(--display);
+      font-size: 1.5rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+    }
+
+    :root[data-theme="neon-dark"] h1,
+    :root[data-theme="neon-light"] h1 {
       font-size: 1.6rem;
       font-weight: 700;
       letter-spacing: 0.06em;
@@ -1832,6 +1880,98 @@
       opacity: 0.7;
     }
 
+    /* ===== THEME PICKER ===== */
+    .theme-picker-wrap { position: relative; }
+
+    .theme-picker-btn {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 12px;
+      min-width: 0;
+    }
+
+    .theme-swatch-row {
+      display: flex;
+      gap: 3px;
+      align-items: center;
+    }
+
+    .theme-swatch-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .theme-picker-popup {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px;
+      z-index: 300;
+      box-shadow: 0 8px 32px var(--shadow), 0 2px 8px var(--shadow);
+      width: 220px;
+    }
+
+    .theme-picker-popup.open { display: block; }
+
+    .theme-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 10px;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: background 0.12s;
+      border: none;
+      background: transparent;
+      width: 100%;
+      text-align: left;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+      letter-spacing: normal;
+      text-transform: none;
+    }
+
+    .theme-option:hover { background: var(--bg-secondary); }
+
+    .theme-option.active {
+      background: var(--bg-secondary);
+      color: var(--accent);
+    }
+
+    .theme-option-swatch {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      flex-shrink: 0;
+      border: 2px solid transparent;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      overflow: hidden;
+    }
+
+    .theme-option.active .theme-option-swatch { border-color: var(--accent); }
+
+    .theme-option-swatch span {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .theme-option-label { display: flex; flex-direction: column; gap: 1px; }
+    .theme-option-name { font-size: 13px; font-weight: 600; }
+    .theme-option-desc { font-size: 11px; color: var(--text-muted); font-weight: 400; }
+
+    .theme-option.active .theme-option-desc { color: var(--accent); opacity: 0.7; }
+
     /* ===== GLOBAL RESPONSIVE ===== */
     @media (max-width: 768px) {
       body {
@@ -1999,7 +2139,62 @@
     </div>
     <div class="buttons">
       <span id="syncStatus" style="font-size:13px;color:var(--text-muted);display:flex;align-items:center;gap:6px;"></span>
-      <button id="themeToggleBtn" class="theme-toggle-btn" title="Toggle theme">🌙 Dark</button>
+      <div class="theme-picker-wrap" id="themePickerWrap">
+        <button class="theme-picker-btn" id="themePickerBtn" title="Change theme">
+          <div class="theme-swatch-row" id="themeSwatchRow"></div>
+          <span id="themeLabel">Light</span>
+        </button>
+        <div class="theme-picker-popup" id="themePickerPopup">
+          <button class="theme-option" data-theme="light">
+            <div class="theme-option-swatch">
+              <span style="background:#faf9f5"></span>
+              <span style="background:#F5F4EF"></span>
+              <span style="background:#D97757"></span>
+              <span style="background:#ffffff"></span>
+            </div>
+            <div class="theme-option-label">
+              <span class="theme-option-name">Light</span>
+              <span class="theme-option-desc">Classic warm</span>
+            </div>
+          </button>
+          <button class="theme-option" data-theme="dark">
+            <div class="theme-option-swatch">
+              <span style="background:#141416"></span>
+              <span style="background:#1c1d21"></span>
+              <span style="background:#ef8b6c"></span>
+              <span style="background:#22242a"></span>
+            </div>
+            <div class="theme-option-label">
+              <span class="theme-option-name">Dark</span>
+              <span class="theme-option-desc">Classic warm</span>
+            </div>
+          </button>
+          <button class="theme-option" data-theme="neon-dark">
+            <div class="theme-option-swatch">
+              <span style="background:#080810"></span>
+              <span style="background:#0d0d1a"></span>
+              <span style="background:#39ff14"></span>
+              <span style="background:#0f0f1e"></span>
+            </div>
+            <div class="theme-option-label">
+              <span class="theme-option-name">Green Neon Dark</span>
+              <span class="theme-option-desc">Cyberpunk</span>
+            </div>
+          </button>
+          <button class="theme-option" data-theme="neon-light">
+            <div class="theme-option-swatch">
+              <span style="background:#f0ede4"></span>
+              <span style="background:#e8e4d8"></span>
+              <span style="background:#cc0077"></span>
+              <span style="background:#faf8f2"></span>
+            </div>
+            <div class="theme-option-label">
+              <span class="theme-option-name">Neon Light</span>
+              <span class="theme-option-desc">Magenta on paper</span>
+            </div>
+          </button>
+        </div>
+      </div>
       <button id="settingsBtn" title="Settings" style="padding: 10px; display: flex; align-items: center;">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"></circle>
@@ -2318,21 +2513,52 @@
     const statusEl = document.getElementById('status');
     const filePathEl = document.getElementById('filePath');
     const syncStatusEl = document.getElementById('syncStatus');
-    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const THEMES = {
+      light:      { label: 'Light',           swatches: ['#faf9f5','#D97757'] },
+      dark:       { label: 'Dark',            swatches: ['#141416','#ef8b6c'] },
+      'neon-dark':  { label: 'Green Neon Dark', swatches: ['#080810','#39ff14'] },
+      'neon-light': { label: 'Neon Light',      swatches: ['#f0ede4','#cc0077'] },
+    };
+
+    const themePickerBtn  = document.getElementById('themePickerBtn');
+    const themePickerPopup = document.getElementById('themePickerPopup');
+    const themeLabel      = document.getElementById('themeLabel');
+    const themeSwatchRow  = document.getElementById('themeSwatchRow');
 
     function applyTheme(theme) {
-      const safeTheme = theme === 'dark' ? 'dark' : 'light';
+      const safeTheme = THEMES[theme] ? theme : 'light';
       document.documentElement.setAttribute('data-theme', safeTheme);
       localStorage.setItem('dashboard_theme', safeTheme);
-      themeToggleBtn.textContent = safeTheme === 'dark' ? '☀️ Light' : '🌙 Dark';
+      const meta = THEMES[safeTheme];
+      themeLabel.textContent = meta.label;
+      themeSwatchRow.innerHTML = meta.swatches
+        .map(c => `<span class="theme-swatch-dot" style="background:${c}"></span>`)
+        .join('');
+      document.querySelectorAll('.theme-option').forEach(opt => {
+        opt.classList.toggle('active', opt.dataset.theme === safeTheme);
+      });
     }
 
     function initTheme() {
       const savedTheme = localStorage.getItem('dashboard_theme') || 'light';
       applyTheme(savedTheme);
-      themeToggleBtn.addEventListener('click', () => {
-        const current = document.documentElement.getAttribute('data-theme') || 'light';
-        applyTheme(current === 'dark' ? 'light' : 'dark');
+
+      themePickerBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        themePickerPopup.classList.toggle('open');
+      });
+
+      document.querySelectorAll('.theme-option').forEach(opt => {
+        opt.addEventListener('click', () => {
+          applyTheme(opt.dataset.theme);
+          themePickerPopup.classList.remove('open');
+        });
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!document.getElementById('themePickerWrap').contains(e.target)) {
+          themePickerPopup.classList.remove('open');
+        }
       });
     }
 
