@@ -30,3 +30,11 @@
     "NEW INSTRUCTION": "WHEN handling API tokens or note IDs THEN collect via runtime Settings UI and store locally"
 }
 
+[2026-04-03 14:06] - Updated by Junie
+{
+    "TYPE": "negative",
+    "CATEGORY": "CORS on save",
+    "EXPECTATION": "They expected the Save to HackMD action to succeed without CORS errors or to get clear steps to fix it.",
+    "NEW INSTRUCTION": "WHEN CORS occurs on save requests THEN handle OPTIONS preflight and allow Authorization, Content-Type"
+}
+
