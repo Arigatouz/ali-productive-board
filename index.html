@@ -2265,6 +2265,237 @@
       .memory-tab { font-size: 10px; padding: 6px 8px; }
     }
   </style>
+
+  <style>
+    /* ══ CYBER SAVE LOADER ══ */
+    #cyber-loader {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.18s ease;
+    }
+    #cyber-loader.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .cl-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.82);
+      backdrop-filter: blur(3px);
+    }
+    .cl-backdrop::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent, transparent 2px,
+        rgba(57, 255, 20, 0.022) 2px, rgba(57, 255, 20, 0.022) 4px
+      );
+      pointer-events: none;
+    }
+    .cl-panel {
+      position: relative;
+      width: 340px;
+      padding: 36px 32px 30px;
+      background: rgba(5, 5, 12, 0.97);
+      border: 1px solid var(--accent);
+      box-shadow:
+        0 0 0 1px rgba(0,0,0,0.6),
+        var(--neon-glow),
+        inset 0 0 60px rgba(0,0,0,0.7);
+      overflow: hidden;
+    }
+    .cl-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent, transparent 3px,
+        rgba(255, 255, 255, 0.01) 3px, rgba(255, 255, 255, 0.01) 4px
+      );
+      pointer-events: none;
+      z-index: 0;
+    }
+    /* Corner brackets */
+    .cl-corner {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border-color: var(--accent);
+      border-style: solid;
+      opacity: 0.9;
+      z-index: 2;
+    }
+    .cl-tl { top: 7px; left: 7px;   border-width: 2px 0 0 2px; }
+    .cl-tr { top: 7px; right: 7px;  border-width: 2px 2px 0 0; }
+    .cl-bl { bottom: 7px; left: 7px;  border-width: 0 0 2px 2px; }
+    .cl-br { bottom: 7px; right: 7px; border-width: 0 2px 2px 0; }
+    /* Sweeping horizontal scan line */
+    .cl-sweep {
+      position: absolute;
+      left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0;
+      z-index: 1;
+      animation: cl-sweep 2s linear infinite;
+    }
+    @keyframes cl-sweep {
+      0%   { top: -2px; opacity: 0; }
+      5%   { opacity: 0.5; }
+      95%  { opacity: 0.5; }
+      100% { top: 100%; opacity: 0; }
+    }
+    /* Content stack */
+    .cl-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+    }
+    /* Spinning hex ring (SVG) */
+    .cl-ring-wrap {
+      width: 68px;
+      height: 68px;
+      position: relative;
+    }
+    .cl-ring-wrap svg {
+      width: 68px;
+      height: 68px;
+    }
+    .cl-ring-track {
+      fill: none;
+      stroke: rgba(255,255,255,0.07);
+      stroke-width: 2;
+    }
+    .cl-ring-outer {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 1.5;
+      stroke-dasharray: 160;
+      stroke-dashoffset: 0;
+      filter: drop-shadow(0 0 4px var(--accent));
+      animation: cl-outer-spin 3s linear infinite;
+      transform-origin: 34px 34px;
+    }
+    .cl-ring-inner {
+      fill: none;
+      stroke: var(--accent2, var(--accent));
+      stroke-width: 2;
+      stroke-dasharray: 80 200;
+      stroke-dashoffset: 0;
+      filter: drop-shadow(0 0 6px var(--accent));
+      animation: cl-inner-spin 1.4s ease-in-out infinite;
+      transform-origin: 34px 34px;
+    }
+    .cl-ring-dot {
+      fill: var(--accent);
+      filter: drop-shadow(0 0 5px var(--accent));
+      animation: cl-dot-pulse 1.4s ease-in-out infinite;
+    }
+    @keyframes cl-outer-spin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+    @keyframes cl-inner-spin {
+      0%   { stroke-dashoffset: 0; }
+      50%  { stroke-dashoffset: -100; }
+      100% { stroke-dashoffset: -200; }
+    }
+    @keyframes cl-dot-pulse {
+      0%, 100% { opacity: 1; r: 3; }
+      50%       { opacity: 0.4; r: 2; }
+    }
+    /* Label with glitch */
+    .cl-label {
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.28em;
+      color: var(--accent);
+      text-shadow: var(--neon-glow);
+      text-transform: uppercase;
+      text-align: center;
+      animation: cl-glitch 3.5s steps(1) infinite;
+    }
+    @keyframes cl-glitch {
+      0%, 88%, 100% {
+        clip-path: none;
+        transform: none;
+        color: var(--accent);
+      }
+      89% {
+        clip-path: polygon(0 25%, 100% 25%, 100% 55%, 0 55%);
+        transform: translateX(-5px);
+        color: var(--accent2, #ff0090);
+      }
+      90% {
+        clip-path: polygon(0 55%, 100% 55%, 100% 85%, 0 85%);
+        transform: translateX(4px);
+        color: var(--accent);
+      }
+      91% {
+        clip-path: none;
+        transform: translateX(-2px);
+      }
+      92% {
+        clip-path: none;
+        transform: none;
+        color: var(--accent);
+      }
+    }
+    .cl-sublabel {
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      color: var(--text-secondary, #5a996a);
+      text-transform: uppercase;
+      opacity: 0.65;
+      text-align: center;
+      margin-top: -10px;
+    }
+    /* Progress bar */
+    .cl-bar-wrap {
+      width: 100%;
+      height: 3px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.07);
+      position: relative;
+      overflow: hidden;
+    }
+    .cl-bar {
+      position: absolute;
+      top: 0; bottom: 0;
+      width: 45%;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      box-shadow: 0 0 10px var(--accent), 0 0 20px var(--accent);
+      animation: cl-bar-slide 1.5s ease-in-out infinite;
+    }
+    @keyframes cl-bar-slide {
+      0%   { left: -45%; }
+      100% { left: 120%; }
+    }
+    /* Hex data stream */
+    .cl-hex-data {
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+      opacity: 0.38;
+      text-align: center;
+      min-height: 13px;
+    }
+  </style>
 </head>
 <body>
 
@@ -3875,6 +4106,7 @@
       saveBtn.disabled = true;
       saveBtn.textContent = 'Saving…';
       setSyncStatus('⟳ Saving…');
+      showCyberLoader('Uploading Tasks');
       try {
         const res = await fetchWithRetry(getFullApiUrl(`/notes/${HACKMD_CONFIG.TASKS_NOTE_ID}`), {
           method: 'PATCH',
@@ -3894,6 +4126,7 @@
         setSyncStatus('⚠ Save failed', '#e55');
         saveBtn.disabled = false;
       }
+      hideCyberLoader();
       saveBtn.textContent = 'Save to HackMD';
     });
 
@@ -4490,6 +4723,7 @@
 
       const content = document.getElementById('editContent').value;
 
+      showCyberLoader('Uploading Memory');
       try {
         if (type === 'memorySection') {
           const sectionName = modalOverlay.dataset.sectionName;
@@ -4518,6 +4752,7 @@
       } catch (e) {
         showStatus('Error saving: ' + e.message);
       }
+      hideCyberLoader();
     }
 
     // Memory event listeners
@@ -4804,6 +5039,7 @@
       articlesSaveBtn.disabled = true;
       articlesSaveBtn.textContent = 'Saving…';
       setSyncStatus('⟳ Saving…');
+      showCyberLoader('Uploading Articles');
       try {
         const res = await fetchWithRetry(getFullApiUrl(`/notes/${HACKMD_CONFIG.ARTICLES_NOTE_ID}`), {
           method: 'PATCH',
@@ -4831,12 +5067,69 @@
         setSyncStatus('⚠ Save failed', '#e55');
         articlesSaveBtn.disabled = false;
       }
+      hideCyberLoader();
       articlesSaveBtn.textContent = 'Save to HackMD';
     });
 
     window.addEventListener('beforeunload', (e) => {
       if (hasArticleChanges) { e.preventDefault(); e.returnValue = ''; }
     });
+  </script>
+
+  <!-- ══ CYBER SAVE LOADER ══ -->
+  <div id="cyber-loader" role="status" aria-label="Saving…">
+    <div class="cl-backdrop"></div>
+    <div class="cl-panel">
+      <span class="cl-corner cl-tl"></span>
+      <span class="cl-corner cl-tr"></span>
+      <span class="cl-corner cl-bl"></span>
+      <span class="cl-corner cl-br"></span>
+      <div class="cl-sweep"></div>
+      <div class="cl-content">
+        <div class="cl-ring-wrap">
+          <svg viewBox="0 0 68 68">
+            <circle class="cl-ring-track" cx="34" cy="34" r="28"/>
+            <circle class="cl-ring-outer" cx="34" cy="34" r="28"/>
+            <circle class="cl-ring-inner" cx="34" cy="34" r="20"/>
+            <circle class="cl-ring-dot" cx="34" cy="6" r="3"/>
+          </svg>
+        </div>
+        <div class="cl-label" id="cl-label">UPLOADING DATA</div>
+        <div class="cl-sublabel">CONNECTING TO HACKMD NODE</div>
+        <div class="cl-bar-wrap"><div class="cl-bar"></div></div>
+        <div class="cl-hex-data" id="cl-hex-data">0x00000000</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const loader = document.getElementById('cyber-loader');
+      const hexEl  = document.getElementById('cl-hex-data');
+      const labelEl = document.getElementById('cl-label');
+      let hexInterval = null;
+
+      const HEX_CHARS = '0123456789ABCDEF';
+      function randHex(len) {
+        let s = '0x';
+        for (let i = 0; i < len; i++) s += HEX_CHARS[Math.floor(Math.random() * 16)];
+        return s;
+      }
+      function randHexLine() {
+        return [8, 8, 4].map(n => randHex(n)).join(' ');
+      }
+
+      window.showCyberLoader = function (label) {
+        if (label) labelEl.textContent = label.toUpperCase();
+        loader.classList.add('active');
+        hexInterval = setInterval(() => { hexEl.textContent = randHexLine(); }, 80);
+      };
+
+      window.hideCyberLoader = function () {
+        loader.classList.remove('active');
+        clearInterval(hexInterval);
+      };
+    })();
   </script>
 </body>
 </html>
