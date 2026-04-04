@@ -2464,6 +2464,15 @@
       return fullUrl;
     }
 
+    async function fetchWithRetry(url, options, retries = 1, delayMs = 1500) {
+      const res = await fetch(url, options);
+      if (res.status >= 500 && retries > 0) {
+        await new Promise(r => setTimeout(r, delayMs));
+        return fetchWithRetry(url, options, retries - 1, delayMs);
+      }
+      return res;
+    }
+
     function normalizeConfigValue(value) {
       if (value === null || value === undefined) return '';
       const str = String(value).trim();
@@ -3867,11 +3876,11 @@
       saveBtn.textContent = 'Saving…';
       setSyncStatus('⟳ Saving…');
       try {
-        const res = await fetch(getFullApiUrl(`/notes/${HACKMD_CONFIG.TASKS_NOTE_ID}`), {
+        const res = await fetchWithRetry(getFullApiUrl(`/notes/${HACKMD_CONFIG.TASKS_NOTE_ID}`), {
           method: 'PATCH',
-          headers: { 
-            'Authorization': 'Bearer ' + HACKMD_CONFIG.API_TOKEN, 
-            'Content-Type': 'application/json' 
+          headers: {
+            'Authorization': 'Bearer ' + HACKMD_CONFIG.API_TOKEN,
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify({ content: toMarkdown() })
         });
@@ -4098,7 +4107,7 @@
     async function saveMemoryNoteContent(content) {
       if (!HACKMD_CONFIG.API_TOKEN) throw new Error('API Token is not configured');
       if (!HACKMD_CONFIG.MEMORY_NOTE_ID) throw new Error('Memory Note ID is not configured — check Settings');
-      const res = await fetch(getFullApiUrl(`/notes/${HACKMD_CONFIG.MEMORY_NOTE_ID}`), {
+      const res = await fetchWithRetry(getFullApiUrl(`/notes/${HACKMD_CONFIG.MEMORY_NOTE_ID}`), {
         method: 'PATCH',
         headers: {
           'Authorization': 'Bearer ' + HACKMD_CONFIG.API_TOKEN,
@@ -4796,7 +4805,7 @@
       articlesSaveBtn.textContent = 'Saving…';
       setSyncStatus('⟳ Saving…');
       try {
-        const res = await fetch(getFullApiUrl(`/notes/${HACKMD_CONFIG.ARTICLES_NOTE_ID}`), {
+        const res = await fetchWithRetry(getFullApiUrl(`/notes/${HACKMD_CONFIG.ARTICLES_NOTE_ID}`), {
           method: 'PATCH',
           headers: {
             'Authorization': 'Bearer ' + HACKMD_CONFIG.API_TOKEN,
