@@ -4096,6 +4096,8 @@
     }
 
     async function saveMemoryNoteContent(content) {
+      if (!HACKMD_CONFIG.API_TOKEN) throw new Error('API Token is not configured');
+      if (!HACKMD_CONFIG.MEMORY_NOTE_ID) throw new Error('Memory Note ID is not configured — check Settings');
       const res = await fetch(getFullApiUrl(`/notes/${HACKMD_CONFIG.MEMORY_NOTE_ID}`), {
         method: 'PATCH',
         headers: {
@@ -4105,11 +4107,10 @@
         body: JSON.stringify({ content })
       });
       if (!res.ok) {
-        if (res.status === 401) {
-          showAuthError();
-          throw new Error('Unauthorized');
-        }
-        throw new Error('Failed to save memory note');
+        if (res.status === 401) { showAuthError(); throw new Error('Unauthorized — check your API token'); }
+        if (res.status === 403) throw new Error('Permission denied — this note is not owned by your HackMD account');
+        if (res.status === 404) throw new Error('Memory note not found — check the Note ID in Settings');
+        throw new Error(`Save failed (HTTP ${res.status})`);
       }
     }
 
@@ -4784,19 +4785,28 @@
         showStatus('Error: HackMD API Token is not configured');
         return;
       }
+      if (!HACKMD_CONFIG.ARTICLES_NOTE_ID) {
+        showStatus('Error: Articles Note ID is not configured — check Settings');
+        return;
+      }
       articlesSaveBtn.disabled = true;
       articlesSaveBtn.textContent = 'Saving…';
       setSyncStatus('⟳ Saving…');
       try {
         const res = await fetch(getFullApiUrl(`/notes/${HACKMD_CONFIG.ARTICLES_NOTE_ID}`), {
           method: 'PATCH',
-          headers: { 
-            'Authorization': 'Bearer ' + HACKMD_CONFIG.API_TOKEN, 
-            'Content-Type': 'application/json' 
+          headers: {
+            'Authorization': 'Bearer ' + HACKMD_CONFIG.API_TOKEN,
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify({ content: articlesToMarkdown(articlesList) })
         });
-        if (!res.ok) throw new Error('Save failed');
+        if (!res.ok) {
+          if (res.status === 401) throw new Error('Unauthorized — check your API token');
+          if (res.status === 403) throw new Error('Permission denied — this note is not owned by your HackMD account');
+          if (res.status === 404) throw new Error('Articles note not found — check the Note ID in Settings');
+          throw new Error(`Save failed (HTTP ${res.status})`);
+        }
         hasArticleChanges = false;
         showStatus('Saved to HackMD ✓');
         setSyncStatus('✓ Saved', 'var(--accent)');
