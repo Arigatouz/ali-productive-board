@@ -4107,7 +4107,10 @@
         body: JSON.stringify({ content })
       });
       if (!res.ok) {
-        if (res.status === 401) { showAuthError(); throw new Error('Unauthorized — check your API token'); }
+        if (res.status === 401) {
+          showAuthError();
+          throw new Error('Unauthorized — check your API token');
+        }
         if (res.status === 403) throw new Error('Permission denied — this note is not owned by your HackMD account');
         if (res.status === 404) throw new Error('Memory note not found — check the Note ID in Settings');
         throw new Error(`Save failed (HTTP ${res.status})`);
@@ -4802,7 +4805,10 @@
           body: JSON.stringify({ content: articlesToMarkdown(articlesList) })
         });
         if (!res.ok) {
-          if (res.status === 401) throw new Error('Unauthorized — check your API token');
+          if (res.status === 401) {
+            showAuthError();
+            throw new Error('Unauthorized — check your API token');
+          }
           if (res.status === 403) throw new Error('Permission denied — this note is not owned by your HackMD account');
           if (res.status === 404) throw new Error('Articles note not found — check the Note ID in Settings');
           throw new Error(`Save failed (HTTP ${res.status})`);
