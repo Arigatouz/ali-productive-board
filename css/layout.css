@@ -216,6 +216,18 @@ header::after {
   .list-view { overflow-x: hidden; }
 
   /* ─ Memory panel ─ */
+  #memoryPanel.tab-panel.active {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .memory-content-area {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    -webkit-overflow-scrolling: touch;
+  }
+
   .memory-tabs {
     overflow-x: auto;
     flex-wrap: nowrap;

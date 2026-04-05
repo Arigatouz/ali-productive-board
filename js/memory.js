@@ -337,8 +337,10 @@ export async function loadMemoryFromAPI(config) {
     const parsed = parseMemoryMarkdown(data.content);
     memoryData   = { claudeMd: { content: data.content, parsed }, memoryFiles: [], memoryDirs: {} };
     renderMemory();
-    document.getElementById('memoryEmptyState')?.setAttribute('style', 'display:none');
-    document.getElementById('memoryMainContent')?.setAttribute('style', 'display:flex');
+    const emptyEl = document.getElementById('memoryEmptyState');
+    if (emptyEl) emptyEl.style.display = 'none';
+    const mainEl = document.getElementById('memoryMainContent');
+    if (mainEl) mainEl.style.display = 'flex';
     const filePathEl = document.getElementById('filePath');
     if (filePathEl) filePathEl.textContent = 'HackMD';
     showStatus('Memory loaded from HackMD');
