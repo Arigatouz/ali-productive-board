@@ -1,0 +1,366 @@
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  position: relative;
+}
+
+header::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.6;
+}
+
+.header-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+}
+
+.buttons { display: flex; gap: 8px; }
+
+/* Tab panel containers */
+.tab-panel {
+  display: none;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.tab-panel.active {
+  display: flex;
+}
+
+/* Status bar */
+.status-bar {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-card);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  box-shadow: var(--neon-glow);
+  padding: 10px 24px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: var(--mono);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 200;
+  white-space: nowrap;
+}
+
+.status-bar.visible { opacity: 1; }
+
+/* File path display */
+.file-path {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ===== GLOBAL RESPONSIVE ===== */
+
+/* ── Touch devices: always show delete/action buttons ── */
+@media (hover: none) {
+  .task-card .delete-btn { display: block; }
+  .task-card .add-on-hover { display: block; }
+  .article-card .article-delete-btn { opacity: 1; }
+}
+
+/* ── 1280px: Large tablets / small laptops ── */
+@media (max-width: 1280px) {
+  .column {
+    min-width: 300px;
+    max-width: 300px;
+  }
+}
+
+/* ── 1024px: Medium tablets (landscape) ── */
+@media (max-width: 1024px) {
+  body {
+    padding: 16px 18px;
+  }
+
+  .column {
+    min-width: 260px;
+    max-width: 260px;
+  }
+
+  .memory-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+
+  .stat { padding: 12px 16px; min-width: 80px; }
+  .stat-value { font-size: 26px; }
+}
+
+/* ── 768px: Tablets (portrait) & large phones ── */
+@media (max-width: 768px) {
+  body {
+    padding: 12px 14px;
+    height: auto;
+    min-height: 100dvh;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ─ Header ─ */
+  header {
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+  }
+
+  .header-left {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
+    gap: 8px 10px;
+    width: 100%;
+    align-items: center;
+  }
+
+  .header-left svg {
+    width: 26px;
+    height: 26px;
+    margin-right: 0;
+    grid-row: 1 / 3;
+  }
+
+  .header-left > div:first-of-type {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  h1 { font-size: 1.15rem; }
+
+  #mainTabToggle {
+    grid-column: 1 / 3;
+    grid-row: 2;
+    margin-left: 0;
+    width: 100%;
+    display: flex;
+  }
+
+  #mainTabToggle button {
+    flex: 1;
+    text-align: center;
+    padding: 8px 6px;
+    font-size: 11px;
+    min-height: 36px;
+  }
+
+  #taskViewToggle { display: none !important; }
+
+  .buttons {
+    width: 100%;
+    justify-content: flex-end;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  #saveBtn,
+  #articlesSaveBtn { padding: 8px 12px; font-size: 11px; min-height: 36px; }
+
+  /* ─ Board / Kanban ─ */
+  .tab-panel.active { display: flex; }
+
+  .board {
+    flex-direction: column;
+    overflow-x: hidden;
+    overflow-y: auto;
+    gap: 14px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .column {
+    min-width: 100%;
+    max-width: 100%;
+    height: auto;
+    max-height: none;
+  }
+
+  .column-header { padding: 12px 14px; }
+
+  .cards {
+    max-height: 360px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .task-card { padding: 14px; }
+  .task-card .delete-btn {
+    display: block;
+    top: 10px;
+    right: 10px;
+    padding: 6px 8px;
+    font-size: 16px;
+  }
+
+  /* ─ List view ─ */
+  .list-view { overflow-x: hidden; }
+
+  /* ─ Memory panel ─ */
+  .memory-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 6px;
+  }
+  .memory-tabs::-webkit-scrollbar { display: none; }
+
+  .memory-tab {
+    font-size: 11px;
+    padding: 7px 12px;
+    white-space: nowrap;
+    min-height: 36px;
+  }
+
+  .memory-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+  }
+
+  .memory-card-fields { grid-template-columns: 1fr; }
+
+  .memory-flat-table td:first-child { width: 90px; font-size: 11px; }
+
+  .stats { gap: 10px; margin-bottom: 16px; }
+  .stat { padding: 10px 14px; min-width: 70px; }
+  .stat-value { font-size: 22px; }
+
+  /* ─ Articles panel ─ */
+  .articles-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .articles-stats { gap: 8px; }
+
+  .articles-stat {
+    padding: 8px 12px;
+    min-width: 68px;
+  }
+
+  .articles-stat-value { font-size: 1.2rem; }
+
+  .articles-add-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 10px 16px;
+    min-height: 40px;
+  }
+
+  .article-card-body { padding: 12px 14px; gap: 10px; }
+
+  .article-progress-input { width: 72px; min-height: 36px; }
+
+  .article-controls { gap: 6px; }
+
+  /* ─ Modal ─ */
+  .modal {
+    width: calc(100vw - 28px);
+    margin: 14px;
+    max-height: calc(100dvh - 28px);
+    border-radius: 10px;
+  }
+
+  /* ─ Password gate ─ */
+  .password-box {
+    width: calc(100vw - 40px);
+    padding: 28px 20px;
+  }
+}
+
+/* ── 480px: Standard phones ── */
+@media (max-width: 480px) {
+  body { padding: 10px 12px; }
+
+  h1 { font-size: 1.05rem; }
+
+  .header-left svg { width: 22px; height: 22px; }
+
+  #mainTabToggle button { font-size: 10px; padding: 7px 4px; }
+
+  .buttons { gap: 5px; }
+
+  /* Board */
+  .cards { max-height: 320px; }
+  .card-title { font-size: 12px; }
+  .card-note { font-size: 12px; }
+
+  /* Memory */
+  .memory-grid { grid-template-columns: 1fr; }
+
+  .memory-flat-table { font-size: 12px; }
+  .memory-flat-table th { padding: 8px 10px; font-size: 10px; }
+  .memory-flat-table td { padding: 7px 10px; }
+  .memory-flat-table td:first-child { width: 80px; }
+
+  .stats { gap: 8px; }
+  .stat { padding: 8px 10px; min-width: 60px; }
+  .stat-value { font-size: 20px; }
+  .stat-label { font-size: 8px; }
+
+  /* Articles */
+  .articles-stat { padding: 7px 10px; min-width: 58px; }
+  .articles-stat-value { font-size: 1.05rem; }
+  .articles-stat-label { font-size: 10px; }
+
+  .article-card-body { padding: 10px 12px; gap: 8px; }
+  .article-title-link { font-size: 13px; }
+  .article-num { width: 22px; height: 22px; font-size: 10px; }
+
+  .article-progress-group { width: 100%; }
+  .article-progress-input { flex: 1; width: auto; }
+
+  .article-add-form-row { flex-direction: column; }
+  .article-add-form input { min-width: 0; width: 100%; }
+  .article-add-form-actions { flex-direction: row; }
+  .article-add-form-actions button { flex: 1; }
+
+  /* Modal */
+  .modal {
+    width: calc(100vw - 20px);
+    margin: 10px;
+    max-height: calc(100dvh - 20px);
+  }
+
+  .modal-header { padding: 14px 16px; }
+  .modal-body { padding: 14px 16px; }
+  .modal-footer { padding: 12px 16px; gap: 8px; }
+  .modal-footer button { flex: 1; text-align: center; justify-content: center; }
+}
+
+/* ── 360px: Very small / budget phones ── */
+@media (max-width: 360px) {
+  body { padding: 8px 10px; }
+
+  h1 { font-size: 0.95rem; }
+
+  #mainTabToggle button { font-size: 9px; padding: 6px 2px; letter-spacing: 0; }
+
+  .view-toggle button { padding: 4px 6px; font-size: 9px; }
+
+  .articles-stats { gap: 6px; }
+  .articles-stat { min-width: 50px; padding: 6px 8px; }
+
+  .memory-tab { font-size: 10px; padding: 6px 8px; }
+}

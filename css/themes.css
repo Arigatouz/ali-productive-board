@@ -1,0 +1,90 @@
+/* ══ THEME 1: Classic Light ══ */
+:root, :root[data-theme="light"] {
+  --bg-primary: #faf9f5;
+  --bg-secondary: #F5F4EF;
+  --bg-card: #ffffff;
+  --text-primary: #141413;
+  --text-secondary: #5c5c5a;
+  --text-muted: #8c8c8a;
+  --accent: #D97757;
+  --accent-hover: #c4684a;
+  --accent2: #D97757;
+  --border: #e5e4df;
+  --border-light: #eeeee9;
+  --shadow: rgba(20, 20, 19, 0.04);
+  --shadow-hover: rgba(20, 20, 19, 0.08);
+  --neon-glow: 0 2px 8px rgba(217, 119, 87, 0.2);
+  --neon-glow-soft: 0 1px 4px rgba(20, 20, 19, 0.06);
+  --scanline: none;
+  --mono: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --display: 'Inter', -apple-system, sans-serif;
+}
+
+/* ══ THEME 2: Classic Dark ══ */
+:root[data-theme="dark"] {
+  --bg-primary: #141416;
+  --bg-secondary: #1c1d21;
+  --bg-card: #22242a;
+  --text-primary: #f2f2f0;
+  --text-secondary: #cbcbd1;
+  --text-muted: #9899a3;
+  --accent: #ef8b6c;
+  --accent-hover: #f39a7f;
+  --accent2: #ef8b6c;
+  --border: #33353d;
+  --border-light: #2b2d34;
+  --shadow: rgba(0, 0, 0, 0.35);
+  --shadow-hover: rgba(0, 0, 0, 0.5);
+  --neon-glow: 0 2px 12px rgba(239, 139, 108, 0.25);
+  --neon-glow-soft: 0 1px 6px rgba(0, 0, 0, 0.3);
+  --scanline: none;
+  --mono: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --display: 'Inter', -apple-system, sans-serif;
+}
+
+/* ══ THEME 3: Green Neon Dark ══ */
+:root[data-theme="neon-dark"] {
+  --bg-primary: #080810;
+  --bg-secondary: #0d0d1a;
+  --bg-card: #0f0f1e;
+  --text-primary: #d0ffda;
+  --text-secondary: #5a996a;
+  --text-muted: #2a5535;
+  --accent: #39ff14;
+  --accent-hover: #2dcc10;
+  --accent2: #ff0090;
+  --border: rgba(57, 255, 20, 0.14);
+  --border-light: rgba(57, 255, 20, 0.07);
+  --shadow: rgba(0, 0, 0, 0.6);
+  --shadow-hover: rgba(57, 255, 20, 0.12);
+  --neon-glow: 0 0 8px #39ff14, 0 0 24px rgba(57, 255, 20, 0.35);
+  --neon-glow-soft: 0 0 16px rgba(57, 255, 20, 0.15);
+  --scanline: repeating-linear-gradient(
+    0deg, transparent, transparent 2px,
+    rgba(57, 255, 20, 0.018) 2px, rgba(57, 255, 20, 0.018) 4px
+  );
+  --mono: 'JetBrains Mono', 'Courier New', monospace;
+  --display: 'Rajdhani', 'JetBrains Mono', monospace;
+}
+
+/* ══ THEME 4: Neon Light ══ */
+:root[data-theme="neon-light"] {
+  --bg-primary: #f0ede4;
+  --bg-secondary: #e8e4d8;
+  --bg-card: #faf8f2;
+  --text-primary: #1a1a2e;
+  --text-secondary: #2d2d4e;
+  --text-muted: #6b6b8a;
+  --accent: #cc0077;
+  --accent-hover: #aa005f;
+  --accent2: #6600cc;
+  --border: rgba(204, 0, 119, 0.18);
+  --border-light: rgba(204, 0, 119, 0.09);
+  --shadow: rgba(26, 26, 46, 0.06);
+  --shadow-hover: rgba(204, 0, 119, 0.14);
+  --neon-glow: 0 0 6px rgba(204, 0, 119, 0.5), 0 0 18px rgba(204, 0, 119, 0.2);
+  --neon-glow-soft: 0 0 12px rgba(204, 0, 119, 0.12);
+  --scanline: none;
+  --mono: 'JetBrains Mono', 'Courier New', monospace;
+  --display: 'Rajdhani', 'JetBrains Mono', monospace;
+}

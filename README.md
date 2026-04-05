@@ -1,6 +1,8 @@
 # Ali Productive Board
 
-A developer-focused productivity dashboard — pure static HTML/CSS/JS, zero build step, HackMD-backed storage, everything runs in the browser.
+> A developer productivity dashboard. Pure static HTML/CSS/JS. No build step. No framework. Data lives in HackMD notes. Everything runs in the browser.
+
+![Static](https://img.shields.io/badge/Static-HTML%2FCSS%2FJS-orange) ![Storage](https://img.shields.io/badge/Storage-HackMD%20%2B%20localStorage-blue) ![Deploy](https://img.shields.io/badge/Deploy-GitHub%20Pages-brightgreen) ![Proxy](https://img.shields.io/badge/Proxy-Cloudflare%20Workers-yellow)
 
 ---
 
@@ -8,11 +10,11 @@ A developer-focused productivity dashboard — pure static HTML/CSS/JS, zero bui
 
 | Tab | What it does |
 |-----|-------------|
-| **Tasks** | Kanban board (board + list view), drag-and-drop sections and cards, subtasks |
+| **Tasks** | Kanban board with board and list views, drag-and-drop for sections and cards, subtasks |
 | **Memory** | Structured notes viewer with editable sections, synced from HackMD |
-| **Articles** | Tech reading tracker — status cycle, progress slider |
-| **Focus** ✨ | Pomodoro timer, habit tracker, weekly stats gauge, achievements, heatmap |
-| **Journal** ✨ | Daily writing entries — local-first, optional HackMD cloud sync |
+| **Articles** | Tech reading tracker with status cycle and progress slider |
+| **Focus** | Pomodoro timer, habit tracker, weekly stats, achievements, 12-week heatmap |
+| **Journal** | Daily writing entries, local-first, optional HackMD cloud sync |
 
 ---
 
@@ -25,47 +27,31 @@ git clone <your-repo-url>
 cd ali-productive-board
 ```
 
-Open `index.html` directly in a browser, or deploy to GitHub Pages (no build step needed).
-
----
+Open `index.html` in a browser. You can also deploy it to GitHub Pages with no changes needed.
 
 ### 2) Deploy the Cloudflare Worker proxy
 
-HackMD's API blocks direct browser requests (CORS). The Worker in this repo acts as a secure middleman.
+HackMD's API blocks direct browser requests due to CORS. The Worker in this repo proxies those requests for you.
 
-#### Step 1 — Create a free Cloudflare account
+| Step | Action |
+|------|--------|
+| 1 | Create a free Cloudflare account at dash.cloudflare.com/sign-up |
+| 2 | Install Node.js 18 or later |
+| 3 | Run `npm install -g wrangler` then `wrangler -v` to confirm |
+| 4 | Run `wrangler login` and click Allow in the browser window |
+| 5 | Open `wrangler.toml` and set your worker name |
+| 6 | Run `npx wrangler deploy` |
+| 7 | Verify with `curl -i -H "Authorization: Bearer YOUR_TOKEN" https://<worker-url>/hackmd/notes` |
+| 8 | Paste the worker URL into the app settings (keep the trailing `/hackmd/`) |
 
-Go to [dash.cloudflare.com/sign-up](https://dash.cloudflare.com/sign-up). A free account is sufficient — no domain needed.
-
-#### Step 2 — Install Node.js ≥ 18
-
-```bash
-node -v   # check version
-```
-
-Download from [nodejs.org](https://nodejs.org) if needed.
-
-#### Step 3 — Install Wrangler
-
-```bash
-npm install -g wrangler
-wrangler -v   # verify
-```
-
-#### Step 4 — Login
-
-```bash
-wrangler login   # opens browser, click Allow
-```
-
-#### Step 5 — Review config
+**Config files:**
 
 | File | Purpose |
 |------|---------|
-| `worker/index.js` | Worker logic — proxies requests to HackMD |
+| `worker/index.js` | Worker logic that proxies requests to HackMD |
 | `wrangler.toml` | Deployment config |
 
-Edit `wrangler.toml` to set your worker name:
+`wrangler.toml` example:
 
 ```toml
 name = "ali-productive-board"   # becomes part of your URL
@@ -73,43 +59,23 @@ main = "worker/index.js"
 compatibility_date = "2024-04-03"
 ```
 
-#### Step 6 — Deploy
-
-```bash
-npx wrangler deploy
-```
-
-Copy the printed URL, e.g. `https://ali-productive-board.yoursubdomain.workers.dev`
-
-#### Step 7 — Verify it's live
-
-```bash
-curl -i -H "Authorization: Bearer YOUR_HACKMD_TOKEN" \
-  https://<your-worker-url>/hackmd/notes
-```
-
-`200 OK` = success. `401` = bad token. `404` = bad path.
-
-#### Step 8 — Copy the proxy URL
+**Proxy URL format:**
 
 ```
 https://<worker-name>.<subdomain>.workers.dev/hackmd/
-                                             ^^^^^^^^
-                                             keep this trailing path
 ```
 
----
+Keep the trailing `/hackmd/`. The Worker uses it to route requests correctly.
 
 ### 3) Create a HackMD API token
 
-1. HackMD → **Settings** → **API** → create and copy your personal token
-2. Never commit this token to git
-
----
+1. Go to HackMD, open Settings, then the API tab
+2. Create and copy your personal token
+3. Do not commit this token to git
 
 ### 4) Create your HackMD notes
 
-Create one note for each area and copy the ID from the URL:
+Create one note per section and grab the ID from the URL:
 
 ```
 https://hackmd.io/AbCdEfGhIjKlMnOpQrStUv
@@ -122,22 +88,22 @@ https://hackmd.io/AbCdEfGhIjKlMnOpQrStUv
 | Tasks | Yes | Kanban board data |
 | Memory | Yes | Structured notes |
 | Articles | Yes | Reading list |
-| Journal | No | Cloud backup of daily journal entries (local-first without it) |
-
----
+| Journal | No | Cloud backup of daily entries, works offline without it |
 
 ### 5) Configure the app
 
-Click the **⚙️ gear icon** → Settings and fill in:
+Click the gear icon in the top right, open Settings, and fill in:
 
-- **HackMD API Token**
-- **CORS Proxy URL** — your `...workers.dev/hackmd/` URL
-- **Tasks Note ID**
-- **Memory Note ID**
-- **Articles Note ID**
-- **Journal Note ID** *(optional — journal works offline without this)*
+| Field | Value |
+|-------|-------|
+| HackMD API Token | Your personal access token from HackMD |
+| CORS Proxy URL | Your `...workers.dev/hackmd/` URL |
+| Tasks Note ID | ID from the Tasks note URL |
+| Memory Note ID | ID from the Memory note URL |
+| Articles Note ID | ID from the Articles note URL |
+| Journal Note ID | ID from the Journal note URL (optional) |
 
-Click **Save**. Settings are stored in `localStorage` only — never sent anywhere other than your own proxy.
+Click Save. Everything is stored in `localStorage` and only leaves your browser through your own Cloudflare Worker.
 
 ---
 
@@ -165,13 +131,12 @@ Click **Save**. Settings are stored in `localStorage` only — never sent anywhe
 - [x] **Finished item**
 ```
 
-**Rules:**
-- Sections are `##` H2 headers — any name works
-- Task titles are wrapped in `**bold**` by the app when saving
-- Subtasks use two-space indent: `  - [ ] subtask`
-- `[x]` or `[X]` marks done
-
----
+| Rule | Details |
+|------|---------|
+| Sections | `##` H2 headers, any name works |
+| Task titles | App wraps them in `**bold**` when saving |
+| Subtasks | Two-space indent: `  - [ ] subtask` |
+| Completion | Use `[x]` or `[X]` to mark done |
 
 ### Memory Note
 
@@ -206,9 +171,7 @@ Ali Gamal, Frontend Team Lead at Luftborn | Angular, RxJS & Nx
 - Uses dark theme
 ```
 
-Built-in sections (auto-created if missing): `Me`, `People`, `Terms`, `Projects`, `Preferences`. Any additional `##` sections are also shown and editable.
-
----
+Built-in sections auto-created if missing: `Me`, `People`, `Terms`, `Projects`, `Preferences`. Any other `##` sections you add are also shown and editable.
 
 ### Articles Note
 
@@ -224,16 +187,14 @@ Built-in sections (auto-created if missing): `Me`, `People`, `Terms`, `Projects`
 
 | Column | Values |
 |--------|--------|
-| `status` | `not-read` · `reading` · `read` |
-| `progress` | `0–100` |
+| `status` | `not-read`, `reading`, `read` |
+| `progress` | 0 to 100 |
 
-The app manages IDs automatically. The table header must start with `| id |`.
+The app handles IDs automatically. The table header must start with `| id |`.
 
----
+### Journal Note (optional)
 
-### Journal Note *(optional)*
-
-When a Journal Note ID is configured, the app syncs all local journal entries to HackMD in this format:
+When you add a Journal Note ID in Settings, the app syncs all local entries to HackMD:
 
 ```markdown
 # Journal
@@ -249,119 +210,132 @@ Today I focused on...
 Yesterday was productive because...
 ```
 
-Entries are always saved locally first — HackMD is a backup, not a dependency.
+Entries are always saved locally first. HackMD is a backup, not a requirement.
 
 ---
 
-## All Features
+## Features
 
-### Tasks — Kanban Board
+### Tasks: Kanban Board
 
-- **Board view** and **List view** (toggle in header)
-- Drag cards between columns; drag columns to reorder
-- Click any task title or note to edit inline
-- Subtasks with nested checkboxes
-- `+ Add Section` button to create new columns
-- Changes saved to HackMD with **Save to HackMD** button
+| Feature | How it works |
+|---------|-------------|
+| View toggle | Switch between Board view and List view using the toggle in the header |
+| Drag and drop | Drag cards between columns, drag columns left or right to reorder |
+| Inline edit | Click any task title or note to edit it |
+| Subtasks | Add nested checkboxes under any task |
+| New sections | Use the `+ Add Section` button to create columns |
+| Save | Hit **Save to HackMD** to push changes |
 
----
+### Memory: Notes Viewer
 
-### Focus Tab ✨
+| Feature | How it works |
+|---------|-------------|
+| Sections | Each `##` header becomes a tab |
+| Inline edit | Click any section content to edit it |
+| Auto-sections | `Me`, `People`, `Terms`, `Projects`, `Preferences` are created if missing |
+| Save | Hit **Save to HackMD** to push changes |
+
+### Articles: Reading Tracker
+
+| Feature | How it works |
+|---------|-------------|
+| Status cycle | Click the status badge to cycle: `not-read` > `reading` > `read` |
+| Progress | Drag the slider to set reading progress from 0 to 100 |
+| Add articles | Use the form at the top, link is required |
+| Save | Hit **Save to HackMD** to push changes |
+
+### Focus Tab
 
 #### Pomodoro Timer
 
-- Circular SVG progress ring with phase display
-- Three phases: **Focus** → **Short Break** → **Long Break**
-- After 4 focus sessions, break automatically extends to long break
-- Three preset modes:
+The timer runs as a circular SVG ring and shows the current phase at all times. After every 4 focus sessions it automatically switches to a long break.
 
 | Preset | Focus | Break | Long Break |
 |--------|-------|-------|------------|
 | **25/5** (default) | 25 min | 5 min | 15 min |
 | **50/10** | 50 min | 10 min | 20 min |
-| **90/20** *(deep work)* | 90 min | 20 min | 30 min |
+| **90/20** (deep work) | 90 min | 20 min | 30 min |
 
-- Browser notification when phase ends
-- Compact header widget shows timer at all times — click it to jump to Focus tab
-- Session count tracked daily and shown as dots in the tab
+The timer widget stays visible in the header no matter which tab you are on. Click it to jump back to the Focus tab. The app sends a browser notification when each phase ends.
 
-**Developer tip:** Use the **90/20 preset** for deep coding sessions — research shows 90-minute blocks align with the brain's ultradian rhythm, giving you time for full context loading before the break.
+**Developer note:** The 90/20 preset works better for coding than the default 25/5. It takes time to fully load context into working memory, and cutting a session at 25 minutes often means you restart right before getting productive.
 
 #### Habit Tracker
 
-- Add unlimited habits with a custom emoji and name
-- One-tap daily check-off per habit
-- Flame streak counter (🔥 appears at 3+ days)
-- **Freeze tokens** — 2 per calendar month, each preserves a streak on a missed day
-- 12-week **activity heatmap** — GitHub contribution graph style, theme-aware
+| Feature | Details |
+|---------|---------|
+| Add habits | Name and emoji per habit |
+| Daily check-off | One check per habit per day |
+| Streaks | Flame icon appears at 3 or more consecutive days |
+| Freeze tokens | 2 per month, each saves a streak on a day you miss |
+| Heatmap | 12-week activity grid in GitHub contribution graph style |
 
-**Suggested developer habits:**
+Habits that tend to work well for developers:
 
-| Habit | Why |
-|-------|-----|
-| 🔍 Review a PR | Keeps team velocity up; research shows <4hr review turnaround has highest impact |
-| 📝 Write a doc | Doc debt accumulates — one function/decision per day adds up |
-| 🧪 Write a test | TDD discipline, one test at a time |
-| 📖 Read an article | Continuous learning, compound knowledge |
-| 🏃 Take a walk | Context reset between focus blocks |
-| 🌅 Plan tomorrow | Reduces morning decision fatigue |
+| Habit | Why it helps |
+|-------|-------------|
+| 🔍 Review a PR | Teams ship faster when reviews happen the same day |
+| 📝 Write a doc | One function documented per day prevents a documentation backlog |
+| 🧪 Write a test | Small daily test habit builds coverage without a big push |
+| 📖 Read an article | Keeps you current without needing to block out study time |
+| 🏃 Take a walk | Resets context between focus sessions |
+| 🌅 Plan tomorrow | Takes less than 5 minutes and removes morning friction |
 
 #### Weekly Stats
 
-- **Score gauge** (0–100): composite of tasks completed + focus minutes + habit completion
-- Week-over-week delta with ↑/↓ indicator
-- 7-day bar chart of daily productivity
-- Metric breakdown: tasks done, focus time, habit completion %
+| Metric | What it shows |
+|--------|--------------|
+| Score gauge | 0-100 score based on tasks, focus minutes, and habit completion |
+| Week delta | Week-over-week comparison with up or down indicator |
+| 7-day chart | Bar chart of daily output for the past week |
+| Breakdown | Tasks done, total focus time, habit completion percentage |
 
-#### Achievements (12 Badges)
+#### Achievements
 
-| Badge | Unlock condition |
-|-------|-----------------|
-| ⏱️ First Pomo | Complete your first Pomodoro |
-| 🔥 On a Roll | 5 total Pomodoro sessions |
-| ⚔️ Focus Knight | 50 total Pomodoro sessions |
-| ✨ 3-Day Streak | 3-day habit streak |
-| 🌟 7-Day Blazer | 7-day habit streak |
-| 💎 30-Day Legend | 30-day habit streak |
-| 🎯 Perfect Day | All habits done in a single day |
-| ✅ Task Master | 10 tasks completed in one day |
+| Badge | How to unlock |
+|-------|--------------|
+| ⏱️ First Pomo | Finish your first Pomodoro session |
+| 🔥 On a Roll | Complete 5 total Pomodoro sessions |
+| ⚔️ Focus Knight | Complete 50 total Pomodoro sessions |
+| ✨ 3-Day Streak | Keep a 3-day habit streak |
+| 🌟 7-Day Blazer | Keep a 7-day habit streak |
+| 💎 30-Day Legend | Keep a 30-day habit streak |
+| 🎯 Perfect Day | Complete every habit in a single day |
+| ✅ Task Master | Finish 10 tasks in one day |
 | 🐦 Early Bird | Log a habit before 8 AM |
 | 🦉 Night Owl | Log a habit after 10 PM |
-| 🎨 Renaissance | 4+ habits configured |
-| 📓 Journal Keeper | 3 journal entries written |
+| 🎨 Renaissance | Set up 4 or more habits |
+| 📓 Journal Keeper | Write 3 journal entries |
 
-A slide-in toast notification appears when any badge unlocks.
+A toast notification slides in from the bottom right whenever you unlock a badge.
 
----
+### Journal Tab
 
-### Journal Tab ✨
-
-- Navigate between days with ← → buttons
-- Daily writing prompt at the top (cycles through 8 prompts)
-- Saves locally with `Cmd/Ctrl + Enter` or the **Save** button
-- Syncs to HackMD journal note if configured (silent, non-blocking)
-- All entries persist in `localStorage` — works fully offline
-
----
+| Feature | Details |
+|---------|---------|
+| Date navigation | Left and right arrows to move between days |
+| Writing prompts | Rotates through 8 daily prompts shown at the top |
+| Save | `Cmd/Ctrl + Enter` or the Save button |
+| Cloud sync | Syncs to HackMD silently if a Journal Note ID is configured |
+| Offline | All entries stay in `localStorage` and work with no internet connection |
 
 ### Command Palette
 
-Press `Cmd/Ctrl + K` from anywhere.
-
-- Fuzzy search across all dashboard actions
-- Arrow key navigation, `Enter` to execute
-- Grouped by category: Navigate, Pomodoro, Tasks, Theme, Settings, Help, Capture
-
----
+| Feature | Details |
+|---------|---------|
+| Open | `Cmd/Ctrl + K` from anywhere |
+| Search | Searches across every action in the dashboard |
+| Navigation | Arrow keys to move through results, `Enter` to run |
+| Categories | Navigate, Pomodoro, Tasks, Theme, Settings, Help, Capture |
 
 ### Quick Capture
 
-Press `Ctrl + Shift + C` or click the **+** button (bottom-right corner).
-
-- Three capture types: **Task**, **Note**, **Link**
-- Tasks are auto-added to the first Kanban column
-- All captures saved to `localStorage` inbox (`qc_inbox`)
-- Submit with `Cmd/Ctrl + Enter`
+| Feature | Details |
+|---------|---------|
+| Open | `Ctrl + Shift + C` or the `+` button in the bottom right corner |
+| What it does | Creates a task and drops it into the first Kanban column instantly |
+| Save | `Cmd/Ctrl + Enter` to save and close |
 
 ---
 
@@ -371,151 +345,157 @@ Press `Ctrl + Shift + C` or click the **+** button (bottom-right corner).
 
 | Action | Shortcut |
 |--------|---------|
-| Command Palette | `Cmd/Ctrl + K` |
+| Open Command Palette | `Cmd/Ctrl + K` |
 | Quick Capture | `Ctrl + Shift + C` |
-| Keyboard shortcut help | `?` |
-| Close / dismiss | `Esc` |
+| Show keyboard shortcuts | `?` |
+| Close or dismiss | `Esc` |
 
-### Navigation
+### Tab Navigation
 
-| Action | Shortcut |
-|--------|---------|
-| Go to Tasks | `1` |
-| Go to Memory | `2` |
-| Go to Articles | `3` |
-| Go to Focus | `4` |
-| Go to Journal | `5` |
+| Tab | Shortcut |
+|-----|---------|
+| Tasks | `1` |
+| Memory | `2` |
+| Articles | `3` |
+| Focus | `4` |
+| Journal | `5` |
 
-> Shortcut keys only work when focus is not inside an input or textarea.
+> These shortcuts only fire when the cursor is not inside an input or textarea.
 
 ### Pomodoro
 
 | Action | Shortcut |
 |--------|---------|
-| Start / Pause timer | `Alt + T` |
+| Start or pause timer | Mac: `Ctrl + ⌥ + T` / Win: `Ctrl + Alt + T` |
 
 ### Journal
 
 | Action | Shortcut |
 |--------|---------|
-| Save journal entry | `Cmd/Ctrl + Enter` |
+| Save entry | `Cmd/Ctrl + Enter` |
 | Close quick capture | `Esc` |
 
 ---
 
 ## Themes
 
-Click the theme button in the top-right:
-
-| Theme | Style |
-|-------|-------|
-| **Light** | Warm orange, clean white cards |
-| **Dark** | Warm orange, dark cards |
-| **Green Neon Dark** | Cyberpunk acid green, void black, CRT scanlines — ideal for late-night coding sessions |
+| Theme | What it looks like |
+|-------|-------------------|
+| **Light** | Warm orange accent on white cards |
+| **Dark** | Warm orange accent on dark cards |
+| **Green Neon Dark** | Acid green on black with CRT scanlines |
 | **Neon Light** | Magenta on aged paper |
 
-Theme persists in `localStorage`. Also switchable via Command Palette → "Cycle Theme".
+Your theme choice is saved in `localStorage`. You can also switch themes through the Command Palette by searching "Cycle Theme".
 
 ---
 
-## Developer-Specific Workflows
+## Developer Workflows
 
-### Deep Work Sessions (90-min Pomodoro)
+### Deep Work Sessions with 90-Minute Blocks
 
-1. Switch to the **90/20 preset** in the Focus tab
-2. Before starting, add the task you're working on to the Kanban board
-3. Start the timer (`Alt + T`) — the header widget keeps the countdown visible while you're in any tab
-4. Use **Quick Capture** (`Ctrl + Shift + C`) to capture ideas mid-session without losing context
-5. After the session, use the **Journal** tab to do a quick "what did I accomplish / what's next" reflection
-6. Take the full 20-min break before the next session
+| Step | Action |
+|------|--------|
+| 1 | Go to Focus tab and select the **90/20 preset** |
+| 2 | Add the task you are about to work on to the Kanban board |
+| 3 | Press `Alt + T` to start. The timer stays visible in the header across all tabs |
+| 4 | Mid-session distraction? Press `Ctrl + Shift + C` to capture it without breaking focus |
+| 5 | After the session ends, open Journal (`5`) and write a quick summary |
+| 6 | Take the full 20-minute break before starting again |
 
-### Code Review Habit
+### Making Code Reviews a Daily Habit
 
-1. Add "🔍 Review PR" as a habit in the Focus tab
-2. During your 5-min Pomodoro break, open your team's PR queue and leave at least one review comment
-3. Check off the habit for the day
-4. The streak counter keeps you accountable
+| Step | Action |
+|------|--------|
+| 1 | Add "🔍 Review PR" as a habit in the Focus tab |
+| 2 | Use your 5-minute Pomodoro breaks to open the team PR queue and leave at least one comment |
+| 3 | Check off the habit at the end of the day |
+| 4 | The streak counter does the accountability work for you |
 
-### Article-to-Task Pipeline
+### Article to Task Pipeline
 
-1. Add tech articles to the **Articles** tab as you find them
-2. When reading, use **Quick Capture** (type: Note) to save key insights
-3. Convert insights into Kanban tasks (e.g., "Try X pattern from that React article")
-4. Mark the article as **Read ✓** when done
+| Step | Action |
+|------|--------|
+| 1 | Save tech articles to the **Articles** tab when you find them |
+| 2 | While reading, use Quick Capture (type: Note) to save anything useful |
+| 3 | Turn those notes into Kanban tasks |
+| 4 | Mark the article as Read when you are done |
 
-### Daily Dev Planning (5 min)
+### Daily Planning in 5 Minutes
 
-1. Open Journal (`5`) → write 2–3 sentences: what you'll focus on today
-2. Open Tasks (`1`) → review and reorder your board
-3. Start your first Pomodoro (`Alt + T`)
+| Step | Action |
+|------|--------|
+| 1 | Press `5` to open Journal and write 2-3 sentences about today's focus |
+| 2 | Press `1` to open Tasks and re-order the board if needed |
+| 3 | Press `Alt + T` to start your first Pomodoro |
 
-### Weekly Review (Fridays)
+### Friday Weekly Review
 
-1. Check Focus tab → weekly stats gauge and badge progress
-2. Open Journal → navigate back through the week's entries
-3. Review Articles tab → anything still at 0% that should be dropped?
-4. Update Memory tab → new team members, decisions made, terms learned
+| Step | Action |
+|------|--------|
+| 1 | Check the Focus tab for your weekly score and any new badges |
+| 2 | Open Journal and browse through the week's entries |
+| 3 | Drop articles that have sat at 0% for more than two weeks |
+| 4 | Update the Memory tab with new people, decisions, or terms from the week |
 
 ---
 
-## localStorage Reference
+## localStorage Keys
 
-All data is stored client-side only. Nothing is sent to any server except through your own Cloudflare Worker to HackMD.
+All data stays in the browser. The only thing that leaves is what you explicitly save to HackMD through your own Cloudflare Worker.
 
-| Key | Contents |
-|-----|---------|
+| Key | What it stores |
+|-----|---------------|
 | `hackmd_api_token` | HackMD personal access token |
 | `hackmd_tasks_id` | Tasks note ID |
 | `hackmd_memory_id` | Memory note ID |
 | `hackmd_articles_id` | Articles note ID |
-| `hackmd_journal_id` | Journal note ID (optional) |
-| `hackmd_cors_proxy` | Cloudflare Worker proxy URL |
-| `dashboard_theme` | Active theme name |
-| `habits` | Array of habit objects `{id, name, emoji}` |
-| `habit_log` | `{date: [habitId, ...]}` daily completions |
+| `hackmd_journal_id` | Journal note ID |
+| `hackmd_cors_proxy` | Cloudflare Worker URL |
+| `dashboard_theme` | Active theme |
+| `habits` | Habit objects `{id, name, emoji}` |
+| `habit_log` | `{date: [habitId, ...]}` |
 | `pomo_state` | Current timer state |
 | `pomo_log` | `{date: count}` daily session totals |
 | `analytics` | `{date: {tasks_done, focus_mins}}` |
 | `badges_unlocked` | `{badgeId: unlockedDate}` |
-| `journal` | `{date: markdownText}` all entries |
-| `qc_inbox` | Array of quick captures |
+| `journal` | `{date: markdownText}` |
+| `qc_inbox` | Quick capture entries |
 | `freeze_tokens` | `{count, lastReset}` |
 
-To reset everything:
+To wipe everything and start fresh:
 
 ```js
-// Run in browser console
 localStorage.clear();
 location.reload();
 ```
 
 ---
 
-## Planned / Future Features
+## What Is Coming Next
 
-Features identified from developer productivity research that are not yet implemented:
-
-| Feature | What it would do |
-|---------|-----------------|
-| **GitHub Activity Widget** | Show open PRs, issues assigned, commit streak — fetched via GitHub token |
-| **Code Snippet Library** | Capture, tag, and search code snippets — synced to a HackMD note |
-| **GitHub Contribution Heatmap** | Real commit activity overlay in the Focus heatmap |
-| **PR Review Tracker** | Track how many PRs you've reviewed this week vs. your goal |
-| **Developer XP / Levels** | Earn XP from tasks, pomodoros, habits, and journal entries |
-| **Distraction Log** | Quick-log what interrupted a Pomodoro session |
-| **Weekly Report Export** | Generate a markdown summary of the week's stats |
-| **Ambient Sound** | Lo-fi / rain sounds tied to Pomodoro sessions (Web Audio API) |
+| Feature | Description |
+|---------|------------|
+| **GitHub Activity Widget** | Show open PRs, assigned issues, and commit streak using a GitHub token |
+| **Code Snippet Library** | Save, tag, and search code snippets synced to a HackMD note |
+| **GitHub Contribution Heatmap** | Overlay real commit activity onto the Focus heatmap |
+| **PR Review Tracker** | Track weekly PR reviews against a personal goal |
+| **Developer XP and Levels** | Earn XP from tasks, Pomodoros, habits, and journal entries |
+| **Distraction Log** | Log what interrupted a Pomodoro session |
+| **Weekly Report Export** | Generate a markdown summary of the week |
+| **Ambient Sound** | Lo-fi or rain sounds tied to focus sessions via Web Audio API |
 
 ---
 
-## Security Model
+## Security
 
-- No secrets are hardcoded in source
-- Token and note IDs are configured at runtime via the Settings modal only
-- All HackMD API calls go through your own Cloudflare Worker — the browser never calls HackMD directly
-- The API token is stored in `localStorage`, which is readable by any JS on the same origin
-- Avoid deploying this dashboard on a shared or public origin
-- Use a HackMD token with minimum required permissions (read + write for your notes only)
+| Point | Details |
+|-------|---------|
+| No secrets in source | Tokens and note IDs are set at runtime through the Settings modal |
+| API routing | All HackMD API calls go through your own Cloudflare Worker, not directly from the browser |
+| Token storage | The API token is stored in `localStorage`, which any JavaScript on the same origin can read |
+| Deployment | Do not deploy this on a shared or public origin |
+| Token scope | Use a HackMD token scoped to the minimum permissions you need |
 
 ---
 
@@ -523,42 +503,41 @@ Features identified from developer productivity research that are not yet implem
 
 ### 401 Unauthorized
 
-1. Verify the token is still valid in HackMD Settings → API
-2. Confirm the token has read + write access
-3. Test directly:
-
-```bash
-curl -H "Authorization: Bearer YOUR_TOKEN" \
-  https://api.hackmd.io/v1/notes/YOUR_NOTE_ID
-```
+| Check | How |
+|-------|-----|
+| Token still valid | Go to HackMD Settings > API tab |
+| Token permissions | Confirm read and write are enabled |
+| Direct test | `curl -H "Authorization: Bearer YOUR_TOKEN" https://api.hackmd.io/v1/notes/YOUR_NOTE_ID` |
 
 ### Settings modal shows no input fields
 
-A stale `"NaN"` value in storage can block the settings modal. Clear and reload:
+A corrupted `"NaN"` value in storage can prevent the modal from rendering. Clear storage and reload:
 
 ```js
 localStorage.clear();
 location.reload();
 ```
 
-### CORS errors
+### CORS errors in the console
 
-- Ensure the configured proxy URL ends with `/hackmd/`
-- Redeploy the Worker if it was recently changed: `npx wrangler deploy`
+| Check | Fix |
+|-------|-----|
+| Proxy URL format | Settings URL must end with `/hackmd/` |
+| Stale Worker code | Redeploy with `npx wrangler deploy` after updating `worker/index.js` |
 
-### Timer resets on page reload
+### Timer resets after a page reload
 
-This is intentional — the timer pauses on reload to prevent phantom counts. Click **Start** to resume.
+This is on purpose. The timer pauses on reload to avoid counting time you were not actually working. Click Start to pick up where you left off.
 
-### Badges not unlocking
+### Badges are not unlocking
 
-Badge checks run when habits are toggled, Pomodoros complete, or tasks are checked. Reload the Focus tab to force a check: navigate away and back (`4`).
+Badge checks run automatically when you toggle a habit, finish a Pomodoro, or check off a task. If something seems stuck, navigate away from the Focus tab and back to it (`4`) to trigger a fresh check.
 
 ---
 
 ## Cloudflare Free Tier
 
-The free Workers plan allows **100,000 requests/day** — more than enough for a personal dashboard.
+The free plan covers 100,000 Worker requests per day, which is plenty for a personal dashboard.
 
 ---
 
