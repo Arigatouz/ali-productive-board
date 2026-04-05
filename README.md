@@ -21,7 +21,7 @@
 ## File Structure
 
 ```
-deploy_v2/
+ali-productive-board/
 ├── index.html              ← HTML structure only (~400 lines)
 ├── css/
 │   ├── themes.css          ← CSS variables for all 4 themes
