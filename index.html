@@ -2496,6 +2496,184 @@
       min-height: 13px;
     }
   </style>
+  <style>
+    /* ══ POMODORO HEADER WIDGET ══ */
+    .pomo-widget{display:flex;align-items:center;gap:7px;padding:6px 12px;border:1px solid var(--border);border-radius:10px;background:var(--bg-secondary);font-family:var(--mono);cursor:pointer;transition:all .2s;user-select:none;}
+    .pomo-widget:hover{border-color:var(--accent);}
+    .pomo-widget.running{border-color:var(--accent);box-shadow:var(--neon-glow);}
+    .pomo-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);opacity:0;transition:opacity .2s;flex-shrink:0;}
+    .pomo-widget.running .pomo-dot{opacity:1;animation:pomo-pulse 1s ease-in-out infinite;}
+    .pomo-time{font-size:14px;font-weight:700;color:var(--accent);letter-spacing:.05em;min-width:38px;text-align:center;}
+    .pomo-phase{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;}
+    @keyframes pomo-pulse{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.5);opacity:.5;}}
+
+    /* ══ FOCUS TAB PANEL ══ */
+    .focus-panel{display:flex;flex-direction:column;gap:20px;padding:24px;overflow-y:auto;flex:1;}
+    .focus-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+    .focus-card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:var(--neon-glow-soft);}
+    .focus-card-full{grid-column:1/-1;}
+    .focus-card-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+    .focus-card-title::after{content:'';flex:1;height:1px;background:var(--border);}
+    @media(max-width:860px){.focus-grid{grid-template-columns:1fr;}.focus-card-full{grid-column:1;}}
+
+    /* Pomodoro ring */
+    .pomo-full{display:flex;flex-direction:column;align-items:center;gap:14px;}
+    .pomo-ring-wrap{position:relative;width:130px;height:130px;}
+    .pomo-ring-svg{width:130px;height:130px;transform:rotate(-90deg);}
+    .pomo-ring-bg{fill:none;stroke:var(--border);stroke-width:7;}
+    .pomo-ring-prog{fill:none;stroke:var(--accent);stroke-width:7;stroke-linecap:round;transition:stroke-dashoffset .5s ease;filter:drop-shadow(0 0 4px var(--accent));}
+    .pomo-ring-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+    .pomo-ring-time{font-family:var(--mono);font-size:24px;font-weight:700;color:var(--text-primary);line-height:1;}
+    .pomo-ring-lbl{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.09em;margin-top:3px;}
+    .pomo-controls{display:flex;gap:8px;}
+    .pomo-btn{padding:7px 15px;border-radius:8px;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text-primary);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;font-family:inherit;}
+    .pomo-btn:hover{border-color:var(--accent);color:var(--accent);}
+    .pomo-btn.primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+    .pomo-btn.primary:hover{background:var(--accent-hover);}
+    .pomo-sessions-row{display:flex;gap:6px;align-items:center;font-size:11px;color:var(--text-muted);}
+    .pomo-sdot{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--accent);transition:background .2s;}
+    .pomo-sdot.done{background:var(--accent);}
+    .pomo-presets{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;}
+    .pomo-preset{font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text-secondary);cursor:pointer;transition:all .15s;font-family:inherit;}
+    .pomo-preset:hover,.pomo-preset.active{border-color:var(--accent);color:var(--accent);}
+
+    /* Habits */
+    .habit-header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+    .habit-add-btn{font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;transition:all .15s;font-family:inherit;}
+    .habit-add-btn:hover{border-color:var(--accent);color:var(--accent);}
+    .habit-list{display:flex;flex-direction:column;gap:6px;}
+    .habit-row{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:10px;border:1px solid var(--border-light);background:var(--bg-secondary);transition:all .15s;}
+    .habit-row:hover{border-color:var(--border);}
+    .habit-emoji{font-size:17px;cursor:default;user-select:none;}
+    .habit-name{flex:1;font-size:13px;color:var(--text-primary);font-weight:500;}
+    .habit-streak{font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:3px;}
+    .habit-streak.hot{color:var(--accent);font-weight:600;}
+    .habit-check-btn{width:26px;height:26px;border-radius:50%;border:2px solid var(--border);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;font-size:13px;color:transparent;flex-shrink:0;}
+    .habit-check-btn:hover{border-color:var(--accent);}
+    .habit-check-btn.done{background:var(--accent);border-color:var(--accent);color:#fff;}
+    .habit-del-btn{width:18px;height:18px;border:none;background:transparent;color:var(--text-muted);cursor:pointer;font-size:13px;opacity:0;transition:opacity .15s;display:flex;align-items:center;justify-content:center;padding:0;}
+    .habit-row:hover .habit-del-btn{opacity:.5;}
+    .habit-del-btn:hover{opacity:1!important;color:#e55;}
+    .freeze-row{margin-top:10px;font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+    .freeze-icons{display:flex;gap:3px;}
+    .freeze-icon{font-size:14px;opacity:.3;cursor:pointer;transition:opacity .15s;}
+    .freeze-icon.avail{opacity:1;}
+    .add-habit-form{display:flex;gap:7px;padding:10px;background:var(--bg-secondary);border-radius:10px;margin-bottom:10px;align-items:center;}
+    .add-habit-form.hidden{display:none;}
+    .add-h-emoji{width:38px;text-align:center;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:5px;font-size:16px;outline:none;}
+    .add-h-name{flex:1;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:5px 9px;font-size:13px;color:var(--text-primary);font-family:inherit;outline:none;}
+    .add-h-name:focus,.add-h-emoji:focus{border-color:var(--accent);}
+    .add-h-submit{padding:5px 13px;border-radius:6px;background:var(--accent);border:none;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;}
+
+    /* Heatmap */
+    .heatmap-wrap{overflow-x:auto;padding-bottom:4px;}
+    .heatmap-grid{display:flex;gap:3px;}
+    .heatmap-col{display:flex;flex-direction:column;gap:3px;}
+    .heatmap-cell{width:12px;height:12px;border-radius:2px;background:var(--border-light);transition:background .2s;cursor:default;}
+    .heatmap-cell.l1{background:rgba(217,119,87,.2);}
+    .heatmap-cell.l2{background:rgba(217,119,87,.45);}
+    .heatmap-cell.l3{background:rgba(217,119,87,.7);}
+    .heatmap-cell.l4{background:var(--accent);box-shadow:0 0 3px var(--accent);}
+    [data-theme="neon-dark"] .heatmap-cell.l1{background:rgba(57,255,20,.12);}
+    [data-theme="neon-dark"] .heatmap-cell.l2{background:rgba(57,255,20,.3);}
+    [data-theme="neon-dark"] .heatmap-cell.l3{background:rgba(57,255,20,.55);}
+    [data-theme="neon-dark"] .heatmap-cell.l4{background:#39ff14;box-shadow:0 0 4px #39ff14;}
+    [data-theme="neon-light"] .heatmap-cell.l1{background:rgba(204,0,119,.15);}
+    [data-theme="neon-light"] .heatmap-cell.l2{background:rgba(204,0,119,.35);}
+    [data-theme="neon-light"] .heatmap-cell.l3{background:rgba(204,0,119,.6);}
+    [data-theme="neon-light"] .heatmap-cell.l4{background:#cc0077;box-shadow:0 0 4px #cc0077;}
+
+    /* Stats gauge */
+    .stats-row{display:flex;gap:16px;align-items:flex-start;}
+    .gauge-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0;}
+    .gauge-svg{width:96px;height:96px;}
+    .gauge-track{fill:none;stroke:var(--border);stroke-width:8;}
+    .gauge-fill{fill:none;stroke:var(--accent);stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset .8s ease;filter:drop-shadow(0 0 4px var(--accent));}
+    .gauge-score{font-family:var(--mono);font-size:16px;font-weight:700;fill:var(--text-primary);text-anchor:middle;}
+    .gauge-sub{font-size:8px;fill:var(--text-muted);text-anchor:middle;}
+    .stats-metrics{flex:1;display:flex;flex-direction:column;gap:9px;}
+    .stat-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;}
+    .stat-lbl{color:var(--text-secondary);}
+    .stat-val{font-weight:700;color:var(--accent);font-family:var(--mono);}
+    .stats-delta{font-size:11px;color:var(--text-muted);margin-top:4px;text-align:center;}
+    .stats-delta.up{color:#4caf50;}
+    .stats-delta.dn{color:#e55;}
+    .week-bars{display:flex;gap:3px;align-items:flex-end;height:44px;margin-top:12px;}
+    .week-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;height:100%;justify-content:flex-end;}
+    .week-bar{width:100%;background:var(--accent);border-radius:2px 2px 0 0;opacity:.55;min-height:2px;transition:height .4s ease;}
+    .week-bar.today{opacity:1;box-shadow:0 0 5px var(--accent);}
+    .week-bar-lbl{font-size:9px;color:var(--text-muted);text-transform:uppercase;}
+
+    /* Badges */
+    .badges-grid{display:flex;flex-wrap:wrap;gap:8px;}
+    .badge-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 10px;border-radius:10px;border:1px solid var(--border-light);background:var(--bg-secondary);min-width:60px;transition:all .15s;}
+    .badge-item.unlocked{border-color:var(--accent);box-shadow:var(--neon-glow-soft);}
+    .badge-item.locked{opacity:.3;filter:grayscale(1);}
+    .badge-icon{font-size:22px;}
+    .badge-name{font-size:9px;color:var(--text-muted);text-align:center;font-weight:600;}
+    .badge-toast{position:fixed;bottom:80px;right:24px;z-index:9001;background:var(--bg-card);border:1px solid var(--accent);border-radius:12px;padding:13px 16px;display:flex;align-items:center;gap:11px;box-shadow:var(--neon-glow),0 4px 20px var(--shadow);transform:translateX(140%);transition:transform .35s cubic-bezier(.34,1.56,.64,1);max-width:270px;}
+    .badge-toast.show{transform:translateX(0);}
+    .badge-toast-icon{font-size:26px;}
+    .badge-toast-title{font-size:13px;font-weight:700;color:var(--accent);}
+    .badge-toast-sub{font-size:11px;color:var(--text-secondary);}
+
+    /* ══ COMMAND PALETTE ══ */
+    .cmd-overlay{position:fixed;inset:0;z-index:8000;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);display:flex;align-items:flex-start;justify-content:center;padding-top:14vh;opacity:0;pointer-events:none;transition:opacity .15s;}
+    .cmd-overlay.open{opacity:1;pointer-events:all;}
+    .cmd-box{width:100%;max-width:520px;background:var(--bg-card);border:1px solid var(--accent);border-radius:14px;overflow:hidden;box-shadow:var(--neon-glow),0 20px 60px rgba(0,0,0,.5);transform:translateY(-10px) scale(.98);transition:transform .15s;}
+    .cmd-overlay.open .cmd-box{transform:translateY(0) scale(1);}
+    .cmd-input-wrap{display:flex;align-items:center;gap:11px;padding:13px 16px;border-bottom:1px solid var(--border);}
+    .cmd-input{flex:1;background:transparent;border:none;outline:none;font-size:15px;color:var(--text-primary);font-family:inherit;}
+    .cmd-input::placeholder{color:var(--text-muted);}
+    .cmd-kbd{font-size:10px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:4px;padding:2px 5px;color:var(--text-muted);font-family:var(--mono);}
+    .cmd-results{max-height:340px;overflow-y:auto;}
+    .cmd-sec-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);padding:8px 16px 3px;font-weight:700;}
+    .cmd-item{display:flex;align-items:center;gap:11px;padding:9px 16px;cursor:pointer;transition:background .1s;}
+    .cmd-item:hover,.cmd-item.sel{background:var(--bg-secondary);}
+    .cmd-item:hover .cmd-item-lbl,.cmd-item.sel .cmd-item-lbl{color:var(--accent);}
+    .cmd-item-icon{font-size:15px;width:20px;text-align:center;flex-shrink:0;}
+    .cmd-item-lbl{font-size:13px;color:var(--text-primary);flex:1;}
+    .cmd-item-sc{font-size:10px;color:var(--text-muted);font-family:var(--mono);}
+    .cmd-empty{padding:22px 16px;text-align:center;color:var(--text-muted);font-size:13px;}
+
+    /* ══ QUICK CAPTURE ══ */
+    .qc-btn{position:fixed;bottom:24px;right:24px;z-index:7000;width:46px;height:46px;border-radius:50%;background:var(--accent);border:none;color:#fff;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--neon-glow),0 4px 16px var(--shadow);transition:all .2s;line-height:1;}
+    .qc-btn:hover{transform:scale(1.1);background:var(--accent-hover);}
+    .qc-modal{position:fixed;bottom:80px;right:24px;z-index:7000;width:300px;background:var(--bg-card);border:1px solid var(--accent);border-radius:14px;padding:15px;box-shadow:var(--neon-glow),0 8px 30px var(--shadow);transform:scale(.9) translateY(10px);transform-origin:bottom right;opacity:0;pointer-events:none;transition:all .2s cubic-bezier(.34,1.56,.64,1);}
+    .qc-modal.open{opacity:1;pointer-events:all;transform:scale(1) translateY(0);}
+    .qc-title{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);font-weight:700;margin-bottom:9px;}
+    .qc-textarea{width:100%;min-height:72px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;padding:9px;color:var(--text-primary);font-size:13px;font-family:inherit;resize:none;outline:none;transition:border-color .15s;}
+    .qc-textarea:focus{border-color:var(--accent);}
+    .qc-actions{display:flex;gap:7px;margin-top:9px;align-items:center;}
+    .qc-types{display:flex;gap:4px;flex:1;}
+    .qc-type{font-size:11px;padding:3px 9px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;transition:all .15s;font-family:inherit;}
+    .qc-type.active{border-color:var(--accent);color:var(--accent);}
+    .qc-save{padding:5px 14px;border-radius:8px;background:var(--accent);border:none;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;}
+    .qc-save:hover{background:var(--accent-hover);}
+
+    /* ══ JOURNAL TAB ══ */
+    .journal-panel{display:flex;flex-direction:column;flex:1;overflow:hidden;}
+    .journal-toolbar{display:flex;align-items:center;gap:12px;padding:14px 22px;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;}
+    .journal-nav-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text-secondary);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+    .journal-nav-btn:hover{border-color:var(--accent);color:var(--accent);}
+    .journal-date-lbl{font-size:14px;font-weight:600;color:var(--text-primary);min-width:150px;text-align:center;}
+    .journal-today-btn{font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;transition:all .15s;font-family:inherit;}
+    .journal-today-btn:hover{border-color:var(--accent);color:var(--accent);}
+    .journal-save-btn{margin-left:auto;padding:6px 16px;border-radius:8px;background:var(--accent);border:none;color:#fff;font-size:12px;font-weight:600;cursor:pointer;transition:background .15s;font-family:inherit;}
+    .journal-save-btn:hover{background:var(--accent-hover);}
+    .journal-save-btn:disabled{opacity:.5;cursor:not-allowed;}
+    .journal-editor-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:20px 22px;}
+    .journal-ta{flex:1;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:18px;color:var(--text-primary);font-size:14px;font-family:var(--mono);line-height:1.75;resize:none;outline:none;transition:border-color .15s;overflow-y:auto;}
+    .journal-ta:focus{border-color:var(--accent);box-shadow:var(--neon-glow-soft);}
+    .journal-prompt-strip{font-size:12px;color:var(--text-muted);padding:8px 2px;font-style:italic;flex-shrink:0;}
+
+    /* ══ KEYBOARD HELP MODAL ══ */
+    .kb-table{width:100%;border-collapse:collapse;}
+    .kb-table tr+tr td{border-top:1px solid var(--border-light);}
+    .kb-table td{padding:7px 10px;font-size:13px;}
+    .kb-table td:last-child{text-align:right;font-family:var(--mono);font-size:11px;color:var(--accent);}
+    .kb-group{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);font-weight:700;padding:10px 10px 3px;}
+  </style>
 </head>
 <body>
 
@@ -2517,6 +2695,8 @@
         <button id="tasksTabBtn" class="active">Tasks</button>
         <button id="memoryTabBtn">Memory</button>
         <button id="articlesTabBtn">Articles</button>
+        <button id="focusTabBtn">Focus</button>
+        <button id="journalTabBtn">Journal</button>
       </div>
       <div class="view-toggle" id="taskViewToggle">
         <button id="boardViewBtn" class="active">Board</button>
@@ -2581,6 +2761,11 @@
           </button>
         </div>
       </div>
+      <div class="pomo-widget" id="pomoWidget" title="Focus Timer — click to open">
+        <span class="pomo-dot" id="pomoDot"></span>
+        <span class="pomo-time" id="pomoHeaderTime">25:00</span>
+        <span class="pomo-phase" id="pomoHeaderPhase">Focus</span>
+      </div>
       <button id="settingsBtn" title="Settings" style="padding: 10px; display: flex; align-items: center;">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"></circle>
@@ -2636,6 +2821,109 @@
     </div>
   </div>
 
+  <!-- FOCUS TAB PANEL -->
+  <div class="tab-panel" id="focusPanel">
+    <div class="focus-panel">
+      <div class="focus-grid">
+        <!-- Pomodoro Timer -->
+        <div class="focus-card">
+          <div class="focus-card-title">Pomodoro Timer</div>
+          <div class="pomo-full">
+            <div class="pomo-ring-wrap">
+              <svg class="pomo-ring-svg" viewBox="0 0 130 130">
+                <circle class="pomo-ring-bg" cx="65" cy="65" r="54"/>
+                <circle class="pomo-ring-prog" id="pomoRingProg" cx="65" cy="65" r="54" stroke-dasharray="339" stroke-dashoffset="0"/>
+              </svg>
+              <div class="pomo-ring-text">
+                <span class="pomo-ring-time" id="pomoRingTime">25:00</span>
+                <span class="pomo-ring-lbl" id="pomoRingLbl">Focus</span>
+              </div>
+            </div>
+            <div class="pomo-controls">
+              <button class="pomo-btn" id="pomoResetBtn">Reset</button>
+              <button class="pomo-btn primary" id="pomoStartBtn">Start</button>
+              <button class="pomo-btn" id="pomoSkipBtn">Skip →</button>
+            </div>
+            <div class="pomo-sessions-row" id="pomoSessRow">
+              <span style="margin-right:4px;">Sessions today:</span>
+            </div>
+            <div class="pomo-presets" id="pomoPresets">
+              <button class="pomo-preset active" data-focus="25" data-break="5" data-long="15">25/5 min</button>
+              <button class="pomo-preset" data-focus="50" data-break="10" data-long="20">50/10 min</button>
+              <button class="pomo-preset" data-focus="90" data-break="20" data-long="30">90/20 min</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Habits -->
+        <div class="focus-card">
+          <div class="habit-header-row">
+            <div class="focus-card-title" style="margin-bottom:0;">Habits</div>
+            <button class="habit-add-btn" id="habitAddBtn">+ New habit</button>
+          </div>
+          <div class="add-habit-form hidden" id="addHabitForm">
+            <input class="add-h-emoji" id="habitEmoji" placeholder="🎯" maxlength="2">
+            <input class="add-h-name" id="habitName" placeholder="Habit name…">
+            <button class="add-h-submit" id="habitSubmitBtn">Add</button>
+          </div>
+          <div class="habit-list" id="habitList"></div>
+          <div class="freeze-row">
+            <span>Freeze tokens:</span>
+            <div class="freeze-icons" id="freezeIcons"></div>
+            <span id="freezeCount" style="color:var(--text-muted);font-size:11px;"></span>
+          </div>
+        </div>
+
+        <!-- Weekly Stats -->
+        <div class="focus-card">
+          <div class="focus-card-title">Weekly Stats</div>
+          <div class="stats-row">
+            <div class="gauge-wrap">
+              <svg class="gauge-svg" viewBox="0 0 96 96">
+                <circle class="gauge-track" cx="48" cy="48" r="36" transform="rotate(-90 48 48)"/>
+                <circle class="gauge-fill" id="gaugeFill" cx="48" cy="48" r="36" stroke-dasharray="226" stroke-dashoffset="226" transform="rotate(-90 48 48)"/>
+                <text class="gauge-score" id="gaugeScore" x="48" y="45">0</text>
+                <text class="gauge-sub" x="48" y="57">/100</text>
+              </svg>
+              <div class="stats-delta" id="statsDelta">—</div>
+            </div>
+            <div class="stats-metrics" id="statsMetrics"></div>
+          </div>
+          <div class="week-bars" id="weekBars"></div>
+        </div>
+
+        <!-- Achievements -->
+        <div class="focus-card">
+          <div class="focus-card-title">Achievements</div>
+          <div class="badges-grid" id="badgesGrid"></div>
+        </div>
+
+        <!-- Heatmap full-width -->
+        <div class="focus-card focus-card-full">
+          <div class="focus-card-title">Habit Activity — 12 Weeks</div>
+          <div class="heatmap-wrap"><div class="heatmap-grid" id="habitHeatmap"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JOURNAL TAB PANEL -->
+  <div class="tab-panel" id="journalPanel">
+    <div class="journal-panel">
+      <div class="journal-toolbar">
+        <button class="journal-nav-btn" id="journalPrevBtn">&#8592;</button>
+        <span class="journal-date-lbl" id="journalDateLbl">Today</span>
+        <button class="journal-nav-btn" id="journalNextBtn">&#8594;</button>
+        <button class="journal-today-btn" id="journalTodayBtn">Today</button>
+        <button class="journal-save-btn" id="journalSaveBtn" disabled>Save</button>
+      </div>
+      <div class="journal-editor-wrap">
+        <div class="journal-prompt-strip" id="journalPrompt"></div>
+        <textarea class="journal-ta" id="journalTa" placeholder="Write your thoughts for today…"></textarea>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL (shared for memory) -->
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal">
@@ -2653,6 +2941,42 @@
 
   <div class="status-bar" id="status"></div>
 
+  <!-- COMMAND PALETTE -->
+  <div class="cmd-overlay" id="cmdOverlay">
+    <div class="cmd-box">
+      <div class="cmd-input-wrap">
+        <span class="cmd-item-icon">⌕</span>
+        <input class="cmd-input" id="cmdInput" placeholder="Type a command or search…" autocomplete="off" spellcheck="false">
+        <span class="cmd-kbd">Esc</span>
+      </div>
+      <div class="cmd-results" id="cmdResults"></div>
+    </div>
+  </div>
+
+  <!-- QUICK CAPTURE -->
+  <button class="qc-btn" id="qcBtn" title="Quick Capture (Ctrl+Shift+C)">+</button>
+  <div class="qc-modal" id="qcModal">
+    <div class="qc-title">Quick Capture</div>
+    <textarea class="qc-textarea" id="qcText" placeholder="Capture a thought, task, or link…"></textarea>
+    <div class="qc-actions">
+      <div class="qc-types">
+        <button class="qc-type active" data-type="task">Task</button>
+        <button class="qc-type" data-type="note">Note</button>
+        <button class="qc-type" data-type="link">Link</button>
+      </div>
+      <button class="qc-save" id="qcSaveBtn">Save</button>
+    </div>
+  </div>
+
+  <!-- BADGE TOAST -->
+  <div class="badge-toast" id="badgeToast">
+    <span class="badge-toast-icon" id="badgeToastIcon">🏆</span>
+    <div>
+      <div class="badge-toast-title" id="badgeToastTitle">Achievement Unlocked!</div>
+      <div class="badge-toast-sub" id="badgeToastSub"></div>
+    </div>
+  </div>
+
   <script>
     // ===== HACKMD CONFIGURATION =====
     const HACKMD_CONFIG = {
@@ -2660,6 +2984,7 @@
       TASKS_NOTE_ID: localStorage.getItem('hackmd_tasks_id') || '',
       MEMORY_NOTE_ID: localStorage.getItem('hackmd_memory_id') || '',
       ARTICLES_NOTE_ID: localStorage.getItem('hackmd_articles_id') || '',
+      JOURNAL_NOTE_ID: localStorage.getItem('hackmd_journal_id') || '',
       CORS_PROXY: localStorage.getItem('hackmd_cors_proxy') || ''
     };
 
@@ -2721,12 +3046,14 @@
       HACKMD_CONFIG.TASKS_NOTE_ID = tasksId;
       HACKMD_CONFIG.MEMORY_NOTE_ID = memoryId;
       HACKMD_CONFIG.ARTICLES_NOTE_ID = articlesId;
+      HACKMD_CONFIG.JOURNAL_NOTE_ID = normalizeConfigValue(config.journalId);
       HACKMD_CONFIG.CORS_PROXY = corsProxy;
 
       localStorage.setItem('hackmd_api_token', apiToken);
       localStorage.setItem('hackmd_tasks_id', tasksId);
       localStorage.setItem('hackmd_memory_id', memoryId);
       localStorage.setItem('hackmd_articles_id', articlesId);
+      localStorage.setItem('hackmd_journal_id', HACKMD_CONFIG.JOURNAL_NOTE_ID);
       localStorage.setItem('hackmd_cors_proxy', corsProxy);
     }
 
@@ -2819,6 +3146,11 @@
                 <label for="configArticlesId">Articles Note</label>
                 <input type="text" id="configArticlesId" placeholder="AbCDefGhIjKlMnOpQrStUv">
               </div>
+              <div class="settings-field">
+                <label for="configJournalId">Journal Note</label>
+                <input type="text" id="configJournalId" placeholder="AbCDefGhIjKlMnOpQrStUv">
+                <div class="settings-help">Optional — journal entries are saved locally even without this</div>
+              </div>
             </div>
           </div>
         </div>
@@ -2835,6 +3167,7 @@
       setFieldValue('configTasksId', settingsValues.tasksId);
       setFieldValue('configMemoryId', settingsValues.memoryId);
       setFieldValue('configArticlesId', settingsValues.articlesId);
+      setFieldValue('configJournalId', normalizeConfigValue(HACKMD_CONFIG.JOURNAL_NOTE_ID));
 
       modalOverlay.classList.add('visible');
       modalOverlay.dataset.type = 'settings';
@@ -2850,7 +3183,8 @@
           corsProxy: getFieldValue('configCorsProxy'),
           tasksId: getFieldValue('configTasksId'),
           memoryId: getFieldValue('configMemoryId'),
-          articlesId: getFieldValue('configArticlesId')
+          articlesId: getFieldValue('configArticlesId'),
+          journalId: getFieldValue('configJournalId')
         };
         saveConfig(config);
         showStatus('Settings saved. Refreshing...');
@@ -2904,6 +3238,7 @@
 
     // ===== SHARED STATE =====
     let activeMainTab = 'tasks';
+    const ALL_TABS = ['tasks','memory','articles','focus','journal'];
 
     const statusEl = document.getElementById('status');
     const filePathEl = document.getElementById('filePath');
@@ -2973,29 +3308,38 @@
     const tasksTabBtn = document.getElementById('tasksTabBtn');
     const memoryTabBtn = document.getElementById('memoryTabBtn');
     const articlesTabBtn = document.getElementById('articlesTabBtn');
+    const focusTabBtn = document.getElementById('focusTabBtn');
+    const journalTabBtn = document.getElementById('journalTabBtn');
     const tasksPanel = document.getElementById('tasksPanel');
     const memoryPanel = document.getElementById('memoryPanel');
     const articlesPanel = document.getElementById('articlesPanel');
+    const focusPanel = document.getElementById('focusPanel');
+    const journalPanel = document.getElementById('journalPanel');
     const taskViewToggle = document.getElementById('taskViewToggle');
     const saveBtn = document.getElementById('saveBtn');
     const articlesSaveBtn = document.getElementById('articlesSaveBtn');
 
+    const TAB_BTNS = { tasks: tasksTabBtn, memory: memoryTabBtn, articles: articlesTabBtn, focus: focusTabBtn, journal: journalTabBtn };
+    const TAB_PANELS = { tasks: tasksPanel, memory: memoryPanel, articles: articlesPanel, focus: focusPanel, journal: journalPanel };
+
     function switchMainTab(tab) {
       activeMainTab = tab;
-      tasksTabBtn.classList.toggle('active', tab === 'tasks');
-      memoryTabBtn.classList.toggle('active', tab === 'memory');
-      articlesTabBtn.classList.toggle('active', tab === 'articles');
-      tasksPanel.classList.toggle('active', tab === 'tasks');
-      memoryPanel.classList.toggle('active', tab === 'memory');
-      articlesPanel.classList.toggle('active', tab === 'articles');
+      ALL_TABS.forEach(t => {
+        TAB_BTNS[t]?.classList.toggle('active', t === tab);
+        TAB_PANELS[t]?.classList.toggle('active', t === tab);
+      });
       taskViewToggle.style.display = tab === 'tasks' ? 'flex' : 'none';
       saveBtn.style.display = tab === 'tasks' ? 'inline-flex' : 'none';
       articlesSaveBtn.style.display = tab === 'articles' ? 'inline-flex' : 'none';
+      if (tab === 'focus') { setTimeout(renderFocusTab, 50); }
+      if (tab === 'journal') { setTimeout(renderJournalDay, 50); }
     }
 
     tasksTabBtn.addEventListener('click', () => switchMainTab('tasks'));
     memoryTabBtn.addEventListener('click', () => switchMainTab('memory'));
     articlesTabBtn.addEventListener('click', () => switchMainTab('articles'));
+    focusTabBtn.addEventListener('click', () => switchMainTab('focus'));
+    journalTabBtn.addEventListener('click', () => switchMainTab('journal'));
 
     // ============================================================
     // ===== TASKS FUNCTIONALITY =====
@@ -3527,6 +3871,8 @@
     function renderTasks() {
       if (currentView === 'board') { renderBoard(); }
       else { renderList(); }
+      // Track task completions for analytics/badges (runs after state is updated)
+      if (typeof trackTaskCompletions === 'function') { try { trackTaskCompletions(); } catch(e){} }
     }
 
     function renderBoard() {
@@ -4759,6 +5105,14 @@
     // ===== INIT DASHBOARD =====
     async function initDashboard() {
       initTheme();
+      // Init all new features (no HackMD required)
+      initPomodoro();
+      initHabits();
+      initCmdPalette();
+      initQC();
+      initJournal();
+      checkBadges();
+
       if (!HACKMD_CONFIG.API_TOKEN || !HACKMD_CONFIG.TASKS_NOTE_ID) {
         showStatus('Please configure your HackMD settings');
         showSettingsModal();
@@ -4779,7 +5133,28 @@
     });
 
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeModal();
+      // Escape: close modals/palette in priority order
+      if (e.key === 'Escape') {
+        if (document.getElementById('cmdOverlay').classList.contains('open')) { closeCmdPalette(); return; }
+        if (document.getElementById('qcModal').classList.contains('open')) { closeQC(); return; }
+        closeModal();
+        return;
+      }
+      // Cmd/Ctrl+K = command palette
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); openCmdPalette(); return; }
+      // Ctrl+Shift+C = quick capture
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'C') { e.preventDefault(); toggleQC(); return; }
+      // ? = keyboard shortcuts help
+      if (e.key === '?' && !e.ctrlKey && !e.metaKey && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+        showKbHelp(); return;
+      }
+      // Alt+T = start/pause pomodoro
+      if (e.altKey && e.key === 't') { e.preventDefault(); pomoToggle(); return; }
+      // Number keys 1-5 for tab switch (no modifier, not in input)
+      if (!e.ctrlKey && !e.metaKey && !e.altKey && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+        const tabMap = { '1': 'tasks', '2': 'memory', '3': 'articles', '4': 'focus', '5': 'journal' };
+        if (tabMap[e.key]) { switchMainTab(tabMap[e.key]); return; }
+      }
     });
 
     // Expose functions to onclick handlers
@@ -4787,6 +5162,831 @@
     window.openNewFileModal = openNewFileModal;
     window.openMemorySectionEditor = openMemorySectionEditor;
     window.filterMemoryDirectory = filterMemoryDirectory;
+
+    // ============================================================
+    // ===== POMODORO TIMER =====
+    // ============================================================
+    const POMO_CIRC = 339; // 2π × 54 (ring radius)
+    let pomoState = JSON.parse(localStorage.getItem('pomo_state') || 'null') || {
+      phase: 'focus', remaining: 25*60, running: false, sessions: 0, focusMins: 25, breakMins: 5, longMins: 15
+    };
+    let pomoInterval = null;
+
+    function pomoSave() { localStorage.setItem('pomo_state', JSON.stringify(pomoState)); }
+
+    function pomoFmt(s) {
+      const m = Math.floor(s/60), sec = s%60;
+      return String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+    }
+
+    function pomoTotalSecs() {
+      if (pomoState.phase === 'focus') return pomoState.focusMins*60;
+      if (pomoState.phase === 'long-break') return pomoState.longMins*60;
+      return pomoState.breakMins*60;
+    }
+
+    function pomoPhaseLabel() {
+      return { focus:'Focus', break:'Short Break', 'long-break':'Long Break' }[pomoState.phase] || 'Focus';
+    }
+
+    function pomoUpdateUI() {
+      const timeStr = pomoFmt(pomoState.remaining);
+      const lbl = pomoPhaseLabel();
+      const total = pomoTotalSecs();
+      const offset = POMO_CIRC * (1 - pomoState.remaining/total);
+
+      // Header widget
+      const hw = document.getElementById('pomoWidget');
+      const ht = document.getElementById('pomoHeaderTime');
+      const hl = document.getElementById('pomoHeaderPhase');
+      if (ht) ht.textContent = timeStr;
+      if (hl) hl.textContent = lbl;
+      if (hw) hw.classList.toggle('running', pomoState.running);
+
+      // Ring
+      const rt = document.getElementById('pomoRingTime');
+      const rl = document.getElementById('pomoRingLbl');
+      const rp = document.getElementById('pomoRingProg');
+      if (rt) rt.textContent = timeStr;
+      if (rl) rl.textContent = lbl;
+      if (rp) rp.style.strokeDashoffset = offset;
+
+      // Start button text
+      const sb = document.getElementById('pomoStartBtn');
+      if (sb) sb.textContent = pomoState.running ? 'Pause' : 'Start';
+
+      // Sessions row
+      const sr = document.getElementById('pomoSessRow');
+      if (sr) {
+        const todaySess = getTodayPomoSessions();
+        let html = '<span style="margin-right:4px;">Sessions today:</span>';
+        for (let i = 0; i < 4; i++) html += `<span class="pomo-sdot${i < todaySess ? ' done' : ''}"></span>`;
+        if (todaySess > 4) html += `<span style="font-size:11px;color:var(--accent);margin-left:2px;">+${todaySess-4}</span>`;
+        sr.innerHTML = html;
+      }
+
+      // Document title when running
+      if (pomoState.running) { document.title = `${timeStr} ${lbl} — Productivity`; }
+      else { document.title = 'Productivity'; }
+    }
+
+    function getTodayPomoSessions() {
+      const today = new Date().toISOString().slice(0,10);
+      const log = JSON.parse(localStorage.getItem('pomo_log') || '{}');
+      return log[today] || 0;
+    }
+
+    function logPomoSession() {
+      const today = new Date().toISOString().slice(0,10);
+      const log = JSON.parse(localStorage.getItem('pomo_log') || '{}');
+      log[today] = (log[today]||0) + 1;
+      localStorage.setItem('pomo_log', JSON.stringify(log));
+      trackAnalytics('focus_mins', pomoState.focusMins);
+    }
+
+    function pomoAdvancePhase() {
+      if (pomoState.phase === 'focus') {
+        pomoState.sessions++;
+        logPomoSession();
+        checkBadges();
+        const isLong = pomoState.sessions % 4 === 0;
+        pomoState.phase = isLong ? 'long-break' : 'break';
+      } else {
+        pomoState.phase = 'focus';
+      }
+      pomoState.remaining = pomoTotalSecs();
+      pomoState.running = false;
+      clearInterval(pomoInterval);
+      pomoSave();
+      pomoUpdateUI();
+      // Browser notification
+      if (Notification.permission === 'granted') {
+        new Notification('Pomodoro', { body: pomoPhaseLabel() + ' time!', icon: '' });
+      }
+    }
+
+    function pomoToggle() {
+      if (pomoState.running) {
+        clearInterval(pomoInterval);
+        pomoState.running = false;
+      } else {
+        if (Notification.permission === 'default') Notification.requestPermission();
+        pomoState.running = true;
+        pomoInterval = setInterval(() => {
+          if (pomoState.remaining > 0) {
+            pomoState.remaining--;
+            pomoUpdateUI();
+            pomoSave();
+          } else {
+            pomoAdvancePhase();
+          }
+        }, 1000);
+      }
+      pomoUpdateUI();
+      pomoSave();
+    }
+
+    function pomoReset() {
+      clearInterval(pomoInterval);
+      pomoState.running = false;
+      pomoState.remaining = pomoTotalSecs();
+      pomoUpdateUI();
+      pomoSave();
+    }
+
+    function pomoSkip() {
+      clearInterval(pomoInterval);
+      pomoAdvancePhase();
+    }
+
+    function initPomodoro() {
+      // Restore running state (page reload)
+      if (pomoState.running) {
+        pomoState.running = false; // pause on reload, user can resume
+        pomoSave();
+      }
+      pomoUpdateUI();
+
+      document.getElementById('pomoStartBtn')?.addEventListener('click', pomoToggle);
+      document.getElementById('pomoResetBtn')?.addEventListener('click', pomoReset);
+      document.getElementById('pomoSkipBtn')?.addEventListener('click', pomoSkip);
+      document.getElementById('pomoWidget')?.addEventListener('click', () => switchMainTab('focus'));
+
+      document.querySelectorAll('.pomo-preset').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.pomo-preset').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          pomoState.focusMins = parseInt(btn.dataset.focus);
+          pomoState.breakMins = parseInt(btn.dataset.break);
+          pomoState.longMins = parseInt(btn.dataset.long);
+          pomoReset();
+        });
+      });
+    }
+
+    // ============================================================
+    // ===== HABITS =====
+    // ============================================================
+    function loadHabits() { return JSON.parse(localStorage.getItem('habits') || '[]'); }
+    function saveHabits(h) { localStorage.setItem('habits', JSON.stringify(h)); }
+    function loadHabitLog() { return JSON.parse(localStorage.getItem('habit_log') || '{}'); }
+    function saveHabitLog(l) { localStorage.setItem('habit_log', JSON.stringify(l)); }
+
+    function todayKey() { return new Date().toISOString().slice(0,10); }
+
+    function habitStreak(habitId) {
+      const log = loadHabitLog();
+      let streak = 0, d = new Date();
+      // Check up to 365 days back
+      for (let i = 0; i < 365; i++) {
+        const key = d.toISOString().slice(0,10);
+        const done = (log[key]||[]).includes(habitId);
+        if (i === 0 && !done) { d.setDate(d.getDate()-1); continue; } // today may not be done yet
+        if (!done) break;
+        streak++;
+        d.setDate(d.getDate()-1);
+      }
+      return streak;
+    }
+
+    function isHabitDoneToday(habitId) {
+      const log = loadHabitLog();
+      return (log[todayKey()]||[]).includes(habitId);
+    }
+
+    function toggleHabitToday(habitId) {
+      const log = loadHabitLog();
+      const today = todayKey();
+      if (!log[today]) log[today] = [];
+      const idx = log[today].indexOf(habitId);
+      if (idx === -1) { log[today].push(habitId); trackAnalytics('habit_done', 1); }
+      else { log[today].splice(idx, 1); }
+      saveHabitLog(log);
+      checkBadges();
+    }
+
+    function getFreezeTokens() {
+      const data = JSON.parse(localStorage.getItem('freeze_tokens') || 'null');
+      if (!data) return { count: 2, lastReset: new Date().toISOString().slice(0,7) };
+      const thisMonth = new Date().toISOString().slice(0,7);
+      if (data.lastReset !== thisMonth) return { count: 2, lastReset: thisMonth };
+      return data;
+    }
+    function saveFreezeTokens(d) { localStorage.setItem('freeze_tokens', JSON.stringify(d)); }
+
+    function renderHabits() {
+      const habits = loadHabits();
+      const log = loadHabitLog();
+      const listEl = document.getElementById('habitList');
+      if (!listEl) return;
+
+      if (habits.length === 0) {
+        listEl.innerHTML = '<div style="font-size:13px;color:var(--text-muted);padding:8px 0;">No habits yet. Add one to start tracking!</div>';
+      } else {
+        listEl.innerHTML = habits.map(h => {
+          const done = isHabitDoneToday(h.id);
+          const streak = habitStreak(h.id);
+          const hot = streak >= 3;
+          return `<div class="habit-row" data-hid="${h.id}">
+            <span class="habit-emoji">${escapeHtml(h.emoji||'🎯')}</span>
+            <span class="habit-name">${escapeHtml(h.name)}</span>
+            <span class="habit-streak${hot?' hot':''}">${streak > 0 ? (hot ? '🔥' : '') + streak + ' day'+(streak!==1?'s':'') : '—'}</span>
+            <button class="habit-check-btn${done?' done':''}" data-action="toggle" data-hid="${h.id}">${done?'✓':''}</button>
+            <button class="habit-del-btn" data-action="del" data-hid="${h.id}" title="Delete">✕</button>
+          </div>`;
+        }).join('');
+
+        listEl.querySelectorAll('[data-action="toggle"]').forEach(btn => {
+          btn.addEventListener('click', e => { toggleHabitToday(e.currentTarget.dataset.hid); renderHabits(); renderStats(); renderHeatmap(); checkBadges(); });
+        });
+        listEl.querySelectorAll('[data-action="del"]').forEach(btn => {
+          btn.addEventListener('click', e => {
+            const hid = e.currentTarget.dataset.hid;
+            if (!confirm('Delete this habit and all its data?')) return;
+            const h = loadHabits().filter(x => x.id !== hid);
+            saveHabits(h);
+            renderHabits(); renderHeatmap();
+          });
+        });
+      }
+
+      // Freeze tokens
+      const ft = getFreezeTokens();
+      const iconsEl = document.getElementById('freezeIcons');
+      const countEl = document.getElementById('freezeCount');
+      if (iconsEl) {
+        iconsEl.innerHTML = [0,1].map(i => `<span class="freeze-icon${i < ft.count ? ' avail' : ''}" title="Freeze token">🧊</span>`).join('');
+      }
+      if (countEl) countEl.textContent = `(${ft.count}/2 this month)`;
+    }
+
+    function initHabits() {
+      document.getElementById('habitAddBtn')?.addEventListener('click', () => {
+        const form = document.getElementById('addHabitForm');
+        form.classList.toggle('hidden');
+        if (!form.classList.contains('hidden')) document.getElementById('habitName')?.focus();
+      });
+
+      document.getElementById('habitSubmitBtn')?.addEventListener('click', submitHabit);
+      document.getElementById('habitName')?.addEventListener('keydown', e => { if (e.key === 'Enter') submitHabit(); });
+    }
+
+    function submitHabit() {
+      const name = document.getElementById('habitName')?.value.trim();
+      const emoji = document.getElementById('habitEmoji')?.value.trim() || '🎯';
+      if (!name) { document.getElementById('habitName')?.focus(); return; }
+      const habits = loadHabits();
+      habits.push({ id: Date.now().toString(36), name, emoji });
+      saveHabits(habits);
+      document.getElementById('habitName').value = '';
+      document.getElementById('habitEmoji').value = '';
+      document.getElementById('addHabitForm').classList.add('hidden');
+      renderHabits();
+    }
+
+    // ============================================================
+    // ===== HABIT HEATMAP =====
+    // ============================================================
+    function renderHeatmap() {
+      const el = document.getElementById('habitHeatmap');
+      if (!el) return;
+      const log = loadHabitLog();
+      const habits = loadHabits();
+      const totalHabits = habits.length || 1;
+      const WEEKS = 12;
+      // Start from 12 weeks ago Monday
+      const today = new Date(); today.setHours(0,0,0,0);
+      const dayOfWeek = today.getDay(); // 0=Sun
+      const startDate = new Date(today);
+      startDate.setDate(today.getDate() - ((WEEKS-1)*7 + ((dayOfWeek+6)%7)));
+
+      const cols = [];
+      let d = new Date(startDate);
+      while (d <= today) {
+        const col = [];
+        for (let dow = 0; dow < 7; dow++) {
+          if (d > today) { col.push(null); d.setDate(d.getDate()+1); continue; }
+          const key = d.toISOString().slice(0,10);
+          const count = (log[key]||[]).length;
+          const level = count === 0 ? 0 : Math.min(4, Math.ceil(count/totalHabits*4));
+          col.push({ key, level, count, date: d.toLocaleDateString('en-US',{month:'short',day:'numeric'}) });
+          d.setDate(d.getDate()+1);
+        }
+        cols.push(col);
+      }
+
+      el.innerHTML = cols.map(col =>
+        `<div class="heatmap-col">${col.map(c => c === null ? '<div class="heatmap-cell" style="opacity:0;"></div>' :
+          `<div class="heatmap-cell${c.level>0?' l'+c.level:''}" title="${c.date}: ${c.count} habit${c.count!==1?'s':''}"></div>`
+        ).join('')}</div>`
+      ).join('');
+    }
+
+    // ============================================================
+    // ===== PRODUCTIVITY STATS =====
+    // ============================================================
+    function getAnalytics() { return JSON.parse(localStorage.getItem('analytics') || '{}'); }
+    function saveAnalytics(a) { localStorage.setItem('analytics', JSON.stringify(a)); }
+
+    function trackAnalytics(key, val) {
+      const a = getAnalytics();
+      const today = todayKey();
+      if (!a[today]) a[today] = {};
+      a[today][key] = (a[today][key]||0) + val;
+      saveAnalytics(a);
+    }
+
+    function getWeekScore(weekOffset) {
+      const a = getAnalytics();
+      const log = loadHabitLog();
+      const habits = loadHabits();
+      const today = new Date(); today.setHours(0,0,0,0);
+      const base = new Date(today);
+      base.setDate(today.getDate() - weekOffset*7);
+      let tasks=0, focusMins=0, habitDays=0;
+      for (let i=0;i<7;i++) {
+        const d = new Date(base); d.setDate(base.getDate()-i);
+        const key = d.toISOString().slice(0,10);
+        const day = a[key]||{};
+        tasks += day.tasks_done||0;
+        focusMins += day.focus_mins||0;
+        if (habits.length > 0) {
+          const dayDone = (log[key]||[]).length;
+          habitDays += dayDone/habits.length;
+        }
+      }
+      const score = Math.min(100, Math.round(tasks*2 + focusMins/3 + habitDays/7*30));
+      return { score, tasks, focusMins, habitDays: Math.round(habitDays*100/Math.max(habits.length*7,1)) };
+    }
+
+    function renderStats() {
+      const curr = getWeekScore(0);
+      const prev = getWeekScore(1);
+      const score = curr.score;
+
+      // Gauge
+      const fill = document.getElementById('gaugeFill');
+      const scoreEl = document.getElementById('gaugeScore');
+      const deltaEl = document.getElementById('statsDelta');
+      if (fill) fill.style.strokeDashoffset = 226 * (1 - score/100);
+      if (scoreEl) scoreEl.textContent = score;
+      if (deltaEl) {
+        const diff = score - prev.score;
+        if (diff > 0) { deltaEl.textContent = `↑ +${diff} vs last week`; deltaEl.className = 'stats-delta up'; }
+        else if (diff < 0) { deltaEl.textContent = `↓ ${diff} vs last week`; deltaEl.className = 'stats-delta dn'; }
+        else { deltaEl.textContent = '= Same as last week'; deltaEl.className = 'stats-delta'; }
+      }
+
+      // Metrics
+      const metricsEl = document.getElementById('statsMetrics');
+      if (metricsEl) {
+        const pomosToday = getTodayPomoSessions();
+        const habitsToday = isAnyHabitDoneToday();
+        const a = getAnalytics(); const todayData = a[todayKey()]||{};
+        metricsEl.innerHTML = `
+          <div class="stat-row"><span class="stat-lbl">Tasks done (week)</span><span class="stat-val">${curr.tasks}</span></div>
+          <div class="stat-row"><span class="stat-lbl">Focus time (week)</span><span class="stat-val">${curr.focusMins} min</span></div>
+          <div class="stat-row"><span class="stat-lbl">Habit completion</span><span class="stat-val">${curr.habitDays}%</span></div>
+          <div class="stat-row"><span class="stat-lbl">Pomodoros today</span><span class="stat-val">${pomosToday}</span></div>
+        `;
+      }
+
+      // Week bars (last 7 days)
+      const weekBarsEl = document.getElementById('weekBars');
+      if (weekBarsEl) {
+        const a = getAnalytics();
+        const days = ['M','T','W','T','F','S','S'];
+        let bars = [];
+        for (let i=6;i>=0;i--) {
+          const d = new Date(); d.setDate(d.getDate()-i);
+          const key = d.toISOString().slice(0,10);
+          const day = a[key]||{};
+          const s = Math.min(100, (day.tasks_done||0)*2 + (day.focus_mins||0)/3);
+          bars.push({s, isToday: i===0, label: days[d.getDay()===0?6:d.getDay()-1]});
+        }
+        const max = Math.max(...bars.map(b=>b.s), 1);
+        weekBarsEl.innerHTML = bars.map(b => `
+          <div class="week-bar-wrap">
+            <div class="week-bar${b.isToday?' today':''}" style="height:${Math.round(b.s/max*40)+2}px;"></div>
+            <span class="week-bar-lbl">${b.label}</span>
+          </div>
+        `).join('');
+      }
+    }
+
+    function isAnyHabitDoneToday() {
+      const log = loadHabitLog();
+      return (log[todayKey()]||[]).length > 0;
+    }
+
+    // Track task completions for stats
+    const _origMarkChanged = typeof markChanged !== 'undefined' ? null : null; // we'll hook in initDashboard
+
+    // ============================================================
+    // ===== BADGES / ACHIEVEMENTS =====
+    // ============================================================
+    const BADGE_DEFS = [
+      { id: 'first_pomo',    icon: '⏱️', name: 'First Pomo',      desc: 'Complete your first Pomodoro session',   check: () => getTodayPomoSessions() >= 1 || getWeekPomoTotal() >= 1 },
+      { id: 'pomo_5',        icon: '🔥', name: 'On a Roll',       desc: 'Complete 5 Pomodoro sessions total',     check: () => getAllPomoTotal() >= 5 },
+      { id: 'pomo_50',       icon: '⚔️', name: 'Focus Knight',    desc: 'Complete 50 Pomodoro sessions total',    check: () => getAllPomoTotal() >= 50 },
+      { id: 'streak_3',      icon: '✨', name: '3-Day Streak',     desc: 'Maintain a 3-day habit streak',          check: () => getMaxCurrentStreak() >= 3 },
+      { id: 'streak_7',      icon: '🌟', name: '7-Day Blazer',     desc: 'Maintain a 7-day habit streak',          check: () => getMaxCurrentStreak() >= 7 },
+      { id: 'streak_30',     icon: '💎', name: '30-Day Legend',    desc: 'Maintain a 30-day habit streak',         check: () => getMaxCurrentStreak() >= 30 },
+      { id: 'perfect_day',   icon: '🎯', name: 'Perfect Day',      desc: 'Complete all habits in a day',           check: () => hasPerfectDay() },
+      { id: 'task_10',       icon: '✅', name: 'Task Master',      desc: 'Complete 10 tasks in one day',           check: () => getMaxDailyTasks() >= 10 },
+      { id: 'early_bird',    icon: '🐦', name: 'Early Bird',       desc: 'Log a habit before 8 AM',                check: () => localStorage.getItem('badge_early_bird') === '1' },
+      { id: 'night_owl',     icon: '🦉', name: 'Night Owl',        desc: 'Log a habit after 10 PM',                check: () => localStorage.getItem('badge_night_owl') === '1' },
+      { id: 'renaissance',   icon: '🎨', name: 'Renaissance',      desc: 'Have 4+ different habits',               check: () => loadHabits().length >= 4 },
+      { id: 'journal_3',     icon: '📓', name: 'Journal Keeper',   desc: 'Write 3 journal entries',                check: () => getJournalCount() >= 3 },
+    ];
+
+    function getWeekPomoTotal() {
+      const log = JSON.parse(localStorage.getItem('pomo_log')||'{}');
+      let total = 0;
+      for (let i=0;i<7;i++) { const d=new Date(); d.setDate(d.getDate()-i); total+=(log[d.toISOString().slice(0,10)]||0); }
+      return total;
+    }
+    function getAllPomoTotal() {
+      return Object.values(JSON.parse(localStorage.getItem('pomo_log')||'{}')).reduce((a,b)=>a+b,0);
+    }
+    function getMaxCurrentStreak() {
+      return Math.max(0, ...loadHabits().map(h => habitStreak(h.id)));
+    }
+    function hasPerfectDay() {
+      const habits = loadHabits();
+      if (!habits.length) return false;
+      const log = loadHabitLog();
+      for (let i=0;i<30;i++) {
+        const d = new Date(); d.setDate(d.getDate()-i);
+        const key = d.toISOString().slice(0,10);
+        const done = log[key]||[];
+        if (habits.every(h => done.includes(h.id))) return true;
+      }
+      return false;
+    }
+    function getMaxDailyTasks() {
+      const a = getAnalytics();
+      return Math.max(0, ...Object.values(a).map(d => d.tasks_done||0));
+    }
+    function getJournalCount() {
+      return Object.keys(JSON.parse(localStorage.getItem('journal')||'{}')).length;
+    }
+
+    function loadUnlockedBadges() { return JSON.parse(localStorage.getItem('badges_unlocked')||'{}'); }
+    function saveUnlockedBadges(u) { localStorage.setItem('badges_unlocked', JSON.stringify(u)); }
+
+    function checkBadges() {
+      const unlocked = loadUnlockedBadges();
+      BADGE_DEFS.forEach(b => {
+        if (!unlocked[b.id] && b.check()) {
+          unlocked[b.id] = new Date().toISOString().slice(0,10);
+          saveUnlockedBadges(unlocked);
+          showBadgeToast(b);
+        }
+      });
+      renderBadges();
+    }
+
+    function showBadgeToast(badge) {
+      const toast = document.getElementById('badgeToast');
+      const icon = document.getElementById('badgeToastIcon');
+      const title = document.getElementById('badgeToastTitle');
+      const sub = document.getElementById('badgeToastSub');
+      if (!toast) return;
+      if (icon) icon.textContent = badge.icon;
+      if (title) title.textContent = 'Achievement Unlocked!';
+      if (sub) sub.textContent = badge.name + ': ' + badge.desc;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 4000);
+    }
+
+    function renderBadges() {
+      const el = document.getElementById('badgesGrid');
+      if (!el) return;
+      const unlocked = loadUnlockedBadges();
+      el.innerHTML = BADGE_DEFS.map(b => {
+        const isUnlocked = !!unlocked[b.id];
+        return `<div class="badge-item${isUnlocked?' unlocked':' locked'}" title="${escapeHtml(b.desc)}">
+          <span class="badge-icon">${b.icon}</span>
+          <span class="badge-name">${escapeHtml(b.name)}</span>
+        </div>`;
+      }).join('');
+    }
+
+    // ============================================================
+    // ===== RENDER FOCUS TAB =====
+    // ============================================================
+    function renderFocusTab() {
+      renderHabits();
+      renderStats();
+      renderHeatmap();
+      renderBadges();
+      pomoUpdateUI();
+    }
+
+    // ============================================================
+    // ===== COMMAND PALETTE =====
+    // ============================================================
+    const CMD_LIST = [
+      // Navigation
+      { icon:'📋', label:'Go to Tasks',           cat:'Navigate', action:()=>switchMainTab('tasks'),    sc:'1' },
+      { icon:'🧠', label:'Go to Memory',           cat:'Navigate', action:()=>switchMainTab('memory'),   sc:'2' },
+      { icon:'📰', label:'Go to Articles',         cat:'Navigate', action:()=>switchMainTab('articles'), sc:'3' },
+      { icon:'🎯', label:'Go to Focus',            cat:'Navigate', action:()=>switchMainTab('focus'),    sc:'4' },
+      { icon:'📓', label:'Go to Journal',          cat:'Navigate', action:()=>switchMainTab('journal'),  sc:'5' },
+      // Pomodoro
+      { icon:'⏱️', label:'Start / Pause Timer',    cat:'Pomodoro', action:pomoToggle,                   sc:'Alt+T' },
+      { icon:'↺',  label:'Reset Timer',            cat:'Pomodoro', action:pomoReset },
+      { icon:'⏭️', label:'Skip Phase',             cat:'Pomodoro', action:pomoSkip },
+      // Tasks
+      { icon:'➕', label:'Add Task (first column)',cat:'Tasks',    action:()=>{ switchMainTab('tasks'); setTimeout(()=>{ const btn = document.querySelector('[data-add]'); btn?.click(); },200); } },
+      // Appearance
+      { icon:'🌗', label:'Toggle Light/Dark',      cat:'Theme',    action:()=>{ const t=document.documentElement.getAttribute('data-theme'); applyTheme(t==='dark'||t==='neon-dark'?'light':'dark'); } },
+      { icon:'⚡', label:'Cycle Theme',            cat:'Theme',    action:()=>{ const themes=['light','dark','neon-dark','neon-light']; const t=document.documentElement.getAttribute('data-theme'); applyTheme(themes[(themes.indexOf(t)+1)%themes.length]); } },
+      // Misc
+      { icon:'⚙️', label:'Open Settings',          cat:'Settings', action:showSettingsModal,            sc:',' },
+      { icon:'⌨️', label:'Keyboard Shortcuts',     cat:'Help',     action:showKbHelp,                   sc:'?' },
+      { icon:'📥', label:'Quick Capture',          cat:'Capture',  action:toggleQC,                    sc:'Ctrl+Shift+C' },
+    ];
+
+    let cmdSelectedIdx = 0;
+    let cmdFiltered = [];
+
+    function openCmdPalette() {
+      const overlay = document.getElementById('cmdOverlay');
+      overlay.classList.add('open');
+      const input = document.getElementById('cmdInput');
+      input.value = '';
+      input.focus();
+      cmdRender('');
+    }
+
+    function closeCmdPalette() {
+      document.getElementById('cmdOverlay').classList.remove('open');
+    }
+
+    function cmdRender(query) {
+      const q = query.trim().toLowerCase();
+      cmdFiltered = q ? CMD_LIST.filter(c => c.label.toLowerCase().includes(q) || c.cat.toLowerCase().includes(q)) : CMD_LIST;
+      cmdSelectedIdx = 0;
+      const el = document.getElementById('cmdResults');
+      if (!el) return;
+      if (!cmdFiltered.length) { el.innerHTML = '<div class="cmd-empty">No commands found</div>'; return; }
+
+      // Group by category
+      const cats = {};
+      cmdFiltered.forEach(c => { if (!cats[c.cat]) cats[c.cat]=[]; cats[c.cat].push(c); });
+      let html = '', idx = 0;
+      Object.entries(cats).forEach(([cat, items]) => {
+        html += `<div class="cmd-sec-lbl">${escapeHtml(cat)}</div>`;
+        items.forEach(item => {
+          const isFirst = idx === 0;
+          html += `<div class="cmd-item${isFirst?' sel':''}" data-idx="${idx}">
+            <span class="cmd-item-icon">${item.icon||''}</span>
+            <span class="cmd-item-lbl">${escapeHtml(item.label)}</span>
+            ${item.sc ? `<span class="cmd-item-sc">${item.sc}</span>` : ''}
+          </div>`;
+          idx++;
+        });
+      });
+      el.innerHTML = html;
+
+      el.querySelectorAll('.cmd-item').forEach((el, i) => {
+        el.addEventListener('click', () => { cmdFiltered[i]?.action(); closeCmdPalette(); });
+        el.addEventListener('mouseenter', () => { cmdSelectedIdx = i; cmdHighlight(); });
+      });
+    }
+
+    function cmdHighlight() {
+      const items = document.querySelectorAll('.cmd-item');
+      items.forEach((el, i) => el.classList.toggle('sel', i === cmdSelectedIdx));
+      items[cmdSelectedIdx]?.scrollIntoView({ block:'nearest' });
+    }
+
+    function initCmdPalette() {
+      const overlay = document.getElementById('cmdOverlay');
+      const input = document.getElementById('cmdInput');
+
+      overlay.addEventListener('click', e => { if (e.target===overlay) closeCmdPalette(); });
+      input.addEventListener('input', e => cmdRender(e.target.value));
+      input.addEventListener('keydown', e => {
+        if (e.key === 'ArrowDown') { e.preventDefault(); cmdSelectedIdx = Math.min(cmdSelectedIdx+1, cmdFiltered.length-1); cmdHighlight(); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); cmdSelectedIdx = Math.max(cmdSelectedIdx-1, 0); cmdHighlight(); }
+        else if (e.key === 'Enter') { cmdFiltered[cmdSelectedIdx]?.action(); closeCmdPalette(); }
+        else if (e.key === 'Escape') { closeCmdPalette(); }
+      });
+    }
+
+    // ============================================================
+    // ===== QUICK CAPTURE =====
+    // ============================================================
+    let qcType = 'task';
+
+    function toggleQC() {
+      const modal = document.getElementById('qcModal');
+      modal.classList.toggle('open');
+      if (modal.classList.contains('open')) {
+        document.getElementById('qcText')?.focus();
+      }
+    }
+    function closeQC() { document.getElementById('qcModal')?.classList.remove('open'); }
+
+    function saveQC() {
+      const text = document.getElementById('qcText')?.value.trim();
+      if (!text) return;
+      const captures = JSON.parse(localStorage.getItem('qc_inbox')||'[]');
+      captures.unshift({ id: Date.now(), type: qcType, text, date: new Date().toISOString() });
+      localStorage.setItem('qc_inbox', JSON.stringify(captures));
+
+      // Auto-add as task if type is 'task'
+      if (qcType === 'task' && sections.length > 0) {
+        const firstSec = sections[0].id;
+        if (!tasks[firstSec]) tasks[firstSec] = [];
+        tasks[firstSec].unshift({ id: Date.now()+Math.random(), title: text, note:'', checked:false, subtasks:[], section:firstSec });
+        markChanged();
+        if (activeMainTab === 'tasks') renderTasks();
+      }
+
+      document.getElementById('qcText').value = '';
+      closeQC();
+      showStatus(qcType === 'task' ? 'Task captured ✓' : 'Note captured ✓');
+    }
+
+    function initQC() {
+      document.getElementById('qcBtn')?.addEventListener('click', toggleQC);
+      document.getElementById('qcSaveBtn')?.addEventListener('click', saveQC);
+      document.getElementById('qcText')?.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && (e.metaKey||e.ctrlKey)) { e.preventDefault(); saveQC(); }
+        if (e.key === 'Escape') { closeQC(); }
+      });
+      document.querySelectorAll('.qc-type').forEach(btn => {
+        btn.addEventListener('click', () => {
+          qcType = btn.dataset.type;
+          document.querySelectorAll('.qc-type').forEach(b => b.classList.toggle('active', b===btn));
+        });
+      });
+    }
+
+    // ============================================================
+    // ===== JOURNAL =====
+    // ============================================================
+    let journalDate = new Date();
+    let journalHasChanges = false;
+
+    const JOURNAL_PROMPTS = [
+      'What is one thing you want to accomplish today?',
+      'What went well yesterday? What would you change?',
+      'What are you grateful for right now?',
+      'What is the one task that would make today successful?',
+      'What is on your mind that you want to get out of your head?',
+      'What is something you learned recently?',
+      'What are you looking forward to?',
+      'Describe your current energy level and why.',
+    ];
+
+    function journalDateKey(d) { return (d||journalDate).toISOString().slice(0,10); }
+
+    function loadJournalEntry(d) {
+      const journal = JSON.parse(localStorage.getItem('journal')||'{}');
+      return journal[journalDateKey(d)] || '';
+    }
+
+    function saveJournalEntry(d, text) {
+      const journal = JSON.parse(localStorage.getItem('journal')||'{}');
+      const key = journalDateKey(d);
+      if (text.trim()) { journal[key] = text; } else { delete journal[key]; }
+      localStorage.setItem('journal', JSON.stringify(journal));
+      checkBadges();
+    }
+
+    function formatJournalDate(d) {
+      const today = new Date(); today.setHours(0,0,0,0);
+      const target = new Date(d); target.setHours(0,0,0,0);
+      const diff = Math.round((today-target)/(1000*60*60*24));
+      if (diff === 0) return 'Today — ' + d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+      if (diff === 1) return 'Yesterday — ' + d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+      return d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+    }
+
+    function renderJournalDay() {
+      const lblEl = document.getElementById('journalDateLbl');
+      const ta = document.getElementById('journalTa');
+      const promptEl = document.getElementById('journalPrompt');
+      const saveBtn = document.getElementById('journalSaveBtn');
+      if (!lblEl || !ta) return;
+
+      lblEl.textContent = formatJournalDate(journalDate);
+      ta.value = loadJournalEntry();
+      journalHasChanges = false;
+      if (saveBtn) saveBtn.disabled = true;
+
+      // Random prompt for today
+      if (promptEl) {
+        const today = new Date(); today.setHours(0,0,0,0);
+        const target = new Date(journalDate); target.setHours(0,0,0,0);
+        if (today.getTime() === target.getTime()) {
+          const idx = Math.floor((Date.now()/86400000)) % JOURNAL_PROMPTS.length;
+          promptEl.textContent = '✏️ ' + JOURNAL_PROMPTS[idx];
+        } else { promptEl.textContent = ''; }
+      }
+    }
+
+    async function saveJournalToHackMD(content) {
+      if (!HACKMD_CONFIG.JOURNAL_NOTE_ID || !HACKMD_CONFIG.API_TOKEN) return;
+      // Build a combined markdown of all journal entries
+      const journal = JSON.parse(localStorage.getItem('journal')||'{}');
+      const entries = Object.entries(journal).sort((a,b)=>b[0].localeCompare(a[0]));
+      const md = '# Journal\n\n' + entries.map(([date, text]) => `## ${date}\n\n${text}\n`).join('\n---\n\n');
+      try {
+        await fetchWithRetry(getFullApiUrl('/notes/'+HACKMD_CONFIG.JOURNAL_NOTE_ID), {
+          method:'PATCH',
+          headers:{'Authorization':'Bearer '+HACKMD_CONFIG.API_TOKEN,'Content-Type':'application/json'},
+          body: JSON.stringify({ content: md })
+        });
+      } catch(e) { /* silent fail — local copy is safe */ }
+    }
+
+    function initJournal() {
+      const ta = document.getElementById('journalTa');
+      const saveBtn = document.getElementById('journalSaveBtn');
+
+      ta?.addEventListener('input', () => {
+        journalHasChanges = true;
+        if (saveBtn) saveBtn.disabled = false;
+      });
+
+      saveBtn?.addEventListener('click', async () => {
+        saveJournalEntry(journalDate, ta.value);
+        journalHasChanges = false;
+        saveBtn.disabled = true;
+        showStatus('Journal saved ✓');
+        showCyberLoader('Saving Journal');
+        await saveJournalToHackMD(ta.value);
+        hideCyberLoader();
+      });
+
+      document.getElementById('journalPrevBtn')?.addEventListener('click', () => {
+        if (journalHasChanges) saveJournalEntry(journalDate, ta?.value||'');
+        journalDate.setDate(journalDate.getDate()-1);
+        renderJournalDay();
+      });
+      document.getElementById('journalNextBtn')?.addEventListener('click', () => {
+        if (journalHasChanges) saveJournalEntry(journalDate, ta?.value||'');
+        const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1);
+        if (journalDate < new Date()) { journalDate.setDate(journalDate.getDate()+1); renderJournalDay(); }
+      });
+      document.getElementById('journalTodayBtn')?.addEventListener('click', () => {
+        if (journalHasChanges) saveJournalEntry(journalDate, ta?.value||'');
+        journalDate = new Date();
+        renderJournalDay();
+      });
+    }
+
+    // ============================================================
+    // ===== KEYBOARD SHORTCUT HELP MODAL =====
+    // ============================================================
+    function showKbHelp() {
+      modalTitle.textContent = 'Keyboard Shortcuts';
+      modalBody.innerHTML = `
+        <div style="overflow-y:auto;max-height:60vh;">
+          <table class="kb-table">
+            <tr><td colspan="2" class="kb-group">Navigation</td></tr>
+            <tr><td>Go to Tasks</td><td>1</td></tr>
+            <tr><td>Go to Memory</td><td>2</td></tr>
+            <tr><td>Go to Articles</td><td>3</td></tr>
+            <tr><td>Go to Focus</td><td>4</td></tr>
+            <tr><td>Go to Journal</td><td>5</td></tr>
+            <tr><td colspan="2" class="kb-group">Global</td></tr>
+            <tr><td>Command Palette</td><td>Cmd/Ctrl + K</td></tr>
+            <tr><td>Quick Capture</td><td>Ctrl + Shift + C</td></tr>
+            <tr><td>Keyboard Shortcuts</td><td>?</td></tr>
+            <tr><td>Close / Cancel</td><td>Esc</td></tr>
+            <tr><td colspan="2" class="kb-group">Pomodoro</td></tr>
+            <tr><td>Start / Pause Timer</td><td>Alt + T</td></tr>
+            <tr><td colspan="2" class="kb-group">Journal</td></tr>
+            <tr><td>Save entry</td><td>Cmd/Ctrl + Enter</td></tr>
+          </table>
+        </div>
+      `;
+      modalOverlay.classList.add('visible');
+      modalOverlay.dataset.type = 'kbHelp';
+      onSettingsSave = null;
+    }
+
+    // ============================================================
+    // ===== TASK ANALYTICS HOOK =====
+    // ============================================================
+    // Patch markChanged to count task completions
+    const _origMarkChanged2 = markChanged;
+    // We'll use a task completion counter instead — hook into toggle actions via MutationObserver approach
+    // Simpler: track in renderTasks by counting checked tasks
+    let _prevCheckedCount = 0;
+    function trackTaskCompletions() {
+      let checked = 0;
+      sections.forEach(s => { (tasks[s.id]||[]).forEach(t => { if (t.checked) checked++; }); });
+      if (checked > _prevCheckedCount) { trackAnalytics('tasks_done', checked - _prevCheckedCount); checkBadges(); }
+      _prevCheckedCount = checked;
+    }
 
     // ============================================================
     // ===== ARTICLES FUNCTIONALITY =====
