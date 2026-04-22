@@ -242,7 +242,10 @@ export async function loadJournalFromHackMD(config) {
   } catch (err) {
     console.warn('Failed to load journal from HackMD:', err);
     /* silent fail — local copy is safe */
-  }(content) {
+  }
+}
+
+async function saveJournalToHackMD(content) {
   if (!_config?.JOURNAL_NOTE_ID || !_config?.API_TOKEN) return;
   const journal  = JSON.parse(localStorage.getItem('journal') || '{}');
   const entries  = Object.entries(journal).sort((a, b) => b[0].localeCompare(a[0]));
