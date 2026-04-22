@@ -20,39 +20,113 @@ let journalDate       = new Date();
 let journalHasChanges = false;
 let _config           = null;
 
+// Cached DOM refs — populated once in initJournal()
+let _ta      = null;
+let _preview = null;
+let _editBtn = null;
+let _saveBtn = null;
+
+const escapeHtml = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/**
+ * Sanitize rendered HTML using the browser's own DOM parser.
+ * Removes <script>/<iframe>/etc., strips event-handler attributes,
+ * and neutralises javascript: URLs.  Adds noopener to external links.
+ */
+function sanitizeHtml(html) {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  doc.querySelectorAll('script,iframe,object,embed,form').forEach(el => el.remove());
+  doc.querySelectorAll('*').forEach(el => {
+    for (const attr of [...el.attributes]) {
+      if (attr.name.startsWith('on')) { el.removeAttribute(attr.name); continue; }
+      if ((attr.name === 'href' || attr.name === 'src' || attr.name === 'action') &&
+          /^\s*javascript:/i.test(attr.value)) {
+        el.setAttribute(attr.name, '#');
+      }
+    }
+    if (el.tagName === 'A' && el.getAttribute('href')) {
+      const href = el.getAttribute('href');
+      if (/^https?:\/\//i.test(href) || href.startsWith('//')) {
+        el.setAttribute('rel', 'noopener noreferrer');
+        el.setAttribute('target', '_blank');
+      }
+    }
+  });
+  return doc.body.innerHTML;
+}
+
+function renderMarkdown(md) {
+  if (typeof marked === 'undefined') return escapeHtml(md);
+  try {
+    return sanitizeHtml(marked.parse(md, { breaks: true, gfm: true }));
+  } catch {
+    return escapeHtml(md);
+  }
+}
+
+function showPreview(content) {
+  if (!_ta || !_preview) return;
+  _preview.innerHTML    = renderMarkdown(content);
+  _preview.style.display = 'block';
+  _ta.style.display      = 'none';
+  if (_editBtn) _editBtn.style.display = '';
+  if (_saveBtn) _saveBtn.style.display = 'none';
+}
+
+function showEditor() {
+  if (!_ta || !_preview) return;
+  _preview.style.display = 'none';
+  _ta.style.display      = '';
+  _ta.focus();
+  if (_editBtn) _editBtn.style.display = 'none';
+  if (_saveBtn) _saveBtn.style.display = '';
+}
+
 export function initJournal(config) {
   _config = config;
 
-  const ta        = document.getElementById('journalTa');
-  const saveBtn   = document.getElementById('journalSaveBtn');
+  _ta      = document.getElementById('journalTa');
+  _saveBtn = document.getElementById('journalSaveBtn');
+  _editBtn = document.getElementById('journalEditBtn');
+  _preview = document.getElementById('journalPreview');
+
   const prevBtn   = document.getElementById('journalPrevBtn');
   const nextBtn   = document.getElementById('journalNextBtn');
   const todayBtn  = document.getElementById('journalTodayBtn');
 
-  ta?.addEventListener('input', () => {
+  _ta?.addEventListener('input', () => {
     journalHasChanges = true;
-    if (saveBtn) saveBtn.disabled = false;
+    if (_saveBtn) _saveBtn.disabled = false;
   });
 
-  saveBtn?.addEventListener('click', async () => {
-    const content = ta?.value || '';
+  _saveBtn?.addEventListener('click', async () => {
+    const content = _ta?.value || '';
     saveJournalEntry(journalDate, content);
     journalHasChanges = false;
-    if (saveBtn) saveBtn.disabled = true;
+    if (_saveBtn) _saveBtn.disabled = true;
+    if (content.trim()) {
+      showPreview(content);
+    } else {
+      showEditor();
+    }
     showStatus('Journal saved ✓');
     showCyberLoader('Saving Journal');
     await saveJournalToHackMD(content);
     hideCyberLoader();
   });
 
+  _editBtn?.addEventListener('click', () => {
+    showEditor();
+  });
+
   prevBtn?.addEventListener('click', () => {
-    if (journalHasChanges) saveJournalEntry(journalDate, ta?.value || '');
+    if (journalHasChanges) saveJournalEntry(journalDate, _ta?.value || '');
     journalDate.setDate(journalDate.getDate() - 1);
     renderJournalDay();
   });
 
   nextBtn?.addEventListener('click', () => {
-    if (journalHasChanges) saveJournalEntry(journalDate, ta?.value || '');
+    if (journalHasChanges) saveJournalEntry(journalDate, _ta?.value || '');
     if (journalDate < new Date()) {
       journalDate.setDate(journalDate.getDate() + 1);
       renderJournalDay();
@@ -60,7 +134,7 @@ export function initJournal(config) {
   });
 
   todayBtn?.addEventListener('click', () => {
-    if (journalHasChanges) saveJournalEntry(journalDate, ta?.value || '');
+    if (journalHasChanges) saveJournalEntry(journalDate, _ta?.value || '');
     journalDate = new Date();
     renderJournalDay();
   });
@@ -92,16 +166,23 @@ function formatJournalDate(d) {
 }
 
 export function renderJournalDay() {
-  const lblEl   = document.getElementById('journalDateLbl');
-  const ta      = document.getElementById('journalTa');
+  const lblEl    = document.getElementById('journalDateLbl');
+  const ta       = document.getElementById('journalTa');
   const promptEl = document.getElementById('journalPrompt');
   const saveBtn  = document.getElementById('journalSaveBtn');
   if (!lblEl || !ta) return;
 
+  const content = loadJournalEntry();
   lblEl.textContent = formatJournalDate(journalDate);
-  ta.value          = loadJournalEntry();
+  ta.value          = content;
   journalHasChanges = false;
   if (saveBtn) saveBtn.disabled = true;
+
+  if (content.trim()) {
+    showPreview(content);
+  } else {
+    showEditor();
+  }
 
   if (promptEl) {
     const today  = new Date(); today.setHours(0, 0, 0, 0);
