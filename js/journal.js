@@ -343,7 +343,7 @@ function parseJournalMarkdown(md) {
   const entries = {};
   if (!md) return entries;
   // Split on section separators and date headers
-  const sectionRe = /^## (\d{4}-\d{2}-\d{2})\s*\n([\s\S]*?)(?=\n---\n|\n*$)/gm;
+  const sectionRe = /^## (\d{4}-\d{2}-\d{2})\s*\n([\s\S]*?)(?=\n---\n|(?![\s\S]))/gm;
   let match;
   while ((match = sectionRe.exec(md)) !== null) {
     const date = match[1];
