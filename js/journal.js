@@ -20,11 +20,43 @@ let journalDate       = new Date();
 let journalHasChanges = false;
 let _config           = null;
 
+function renderMarkdown(md) {
+  if (typeof marked === 'undefined') return md.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  return marked.parse(md, { breaks: true, gfm: true });
+}
+
+function showPreview(content) {
+  const ta      = document.getElementById('journalTa');
+  const preview = document.getElementById('journalPreview');
+  const editBtn = document.getElementById('journalEditBtn');
+  const saveBtn = document.getElementById('journalSaveBtn');
+  if (!ta || !preview) return;
+  preview.innerHTML = renderMarkdown(content);
+  preview.style.display = 'block';
+  ta.style.display      = 'none';
+  if (editBtn) editBtn.style.display = '';
+  if (saveBtn) saveBtn.style.display = 'none';
+}
+
+function showEditor() {
+  const ta      = document.getElementById('journalTa');
+  const preview = document.getElementById('journalPreview');
+  const editBtn = document.getElementById('journalEditBtn');
+  const saveBtn = document.getElementById('journalSaveBtn');
+  if (!ta || !preview) return;
+  preview.style.display = 'none';
+  ta.style.display      = '';
+  ta.focus();
+  if (editBtn) editBtn.style.display = 'none';
+  if (saveBtn) saveBtn.style.display = '';
+}
+
 export function initJournal(config) {
   _config = config;
 
   const ta        = document.getElementById('journalTa');
   const saveBtn   = document.getElementById('journalSaveBtn');
+  const editBtn   = document.getElementById('journalEditBtn');
   const prevBtn   = document.getElementById('journalPrevBtn');
   const nextBtn   = document.getElementById('journalNextBtn');
   const todayBtn  = document.getElementById('journalTodayBtn');
@@ -39,10 +71,15 @@ export function initJournal(config) {
     saveJournalEntry(journalDate, content);
     journalHasChanges = false;
     if (saveBtn) saveBtn.disabled = true;
+    if (content.trim()) showPreview(content);
     showStatus('Journal saved ✓');
     showCyberLoader('Saving Journal');
     await saveJournalToHackMD(content);
     hideCyberLoader();
+  });
+
+  editBtn?.addEventListener('click', () => {
+    showEditor();
   });
 
   prevBtn?.addEventListener('click', () => {
@@ -92,16 +129,23 @@ function formatJournalDate(d) {
 }
 
 export function renderJournalDay() {
-  const lblEl   = document.getElementById('journalDateLbl');
-  const ta      = document.getElementById('journalTa');
+  const lblEl    = document.getElementById('journalDateLbl');
+  const ta       = document.getElementById('journalTa');
   const promptEl = document.getElementById('journalPrompt');
   const saveBtn  = document.getElementById('journalSaveBtn');
   if (!lblEl || !ta) return;
 
+  const content = loadJournalEntry();
   lblEl.textContent = formatJournalDate(journalDate);
-  ta.value          = loadJournalEntry();
+  ta.value          = content;
   journalHasChanges = false;
   if (saveBtn) saveBtn.disabled = true;
+
+  if (content.trim()) {
+    showPreview(content);
+  } else {
+    showEditor();
+  }
 
   if (promptEl) {
     const today  = new Date(); today.setHours(0, 0, 0, 0);

@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="css/focus.css">
   <link rel="stylesheet" href="css/journal.css">
   <link rel="stylesheet" href="css/overlays.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
 </head>
 <body>
 
@@ -264,10 +265,12 @@
         <button class="journal-nav-btn" id="journalNextBtn">&#8594;</button>
         <button class="journal-today-btn" id="journalTodayBtn">Today</button>
         <button class="journal-save-btn" id="journalSaveBtn" disabled>Save</button>
+        <button class="journal-edit-btn" id="journalEditBtn" style="display:none">Edit</button>
       </div>
       <div class="journal-editor-wrap">
         <div class="journal-prompt-strip" id="journalPrompt"></div>
         <textarea class="journal-ta" id="journalTa" placeholder="Write your thoughts for today…"></textarea>
+        <div class="journal-preview" id="journalPreview"></div>
       </div>
     </div>
   </div>
