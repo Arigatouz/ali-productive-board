@@ -345,7 +345,7 @@ export async function loadJournalFromHackMD(config) {
 
     // One-time migration: pick up any entries that were in localStorage
     let legacy = {};
-    try { legacy = JSON.parse(localStorage.getItem('journal') || '{}'); } catch { /* ignore */ }
+    try { legacy = JSON.parse(localStorage.getItem('journal') || '{}'); } catch (err) { console.warn('Journal migration from localStorage failed:', err); }
     if (Object.keys(legacy).length) {
       localStorage.removeItem('journal');
     }
