@@ -127,24 +127,27 @@ export function initJournal(config) {
     showEditor();
   });
 
-  prevBtn?.addEventListener('click', () => {
-    if (journalHasChanges) saveJournalEntry(journalDate, _ta?.value || '');
-    journalDate.setDate(journalDate.getDate() - 1);
-    renderJournalDay();
+  prevBtn?.addEventListener('click', async () => {
+    await navigateWithSaveCheck(() => {
+      journalDate.setDate(journalDate.getDate() - 1);
+      renderJournalDay();
+    });
   });
 
-  nextBtn?.addEventListener('click', () => {
-    if (journalHasChanges) saveJournalEntry(journalDate, _ta?.value || '');
+  nextBtn?.addEventListener('click', async () => {
     if (journalDate < new Date()) {
-      journalDate.setDate(journalDate.getDate() + 1);
-      renderJournalDay();
+      await navigateWithSaveCheck(() => {
+        journalDate.setDate(journalDate.getDate() + 1);
+        renderJournalDay();
+      });
     }
   });
 
-  todayBtn?.addEventListener('click', () => {
-    if (journalHasChanges) saveJournalEntry(journalDate, _ta?.value || '');
-    journalDate = new Date();
-    renderJournalDay();
+  todayBtn?.addEventListener('click', async () => {
+    await navigateWithSaveCheck(() => {
+      journalDate = new Date();
+      renderJournalDay();
+    });
   });
 
   // ── Date history menu ────────────────────────────────────────────────────────
@@ -241,12 +244,13 @@ function renderDateMenuWindow(scrollTop) {
       `<span class="journal-date-item-date">${date}</span>` +
       `<span class="journal-date-item-wc">${wordCount}w</span>`;
 
-    el.addEventListener('click', () => {
-      if (journalHasChanges) saveJournalEntry(journalDate, _ta?.value || '');
-      // Use noon local time so date arithmetic stays on the correct calendar day
-      journalDate = new Date(date + 'T12:00:00');
-      renderJournalDay();
-      closeDateMenu();
+    el.addEventListener('click', async () => {
+      await navigateWithSaveCheck(() => {
+        // Use noon local time so date arithmetic stays on the correct calendar day
+        journalDate = new Date(date + 'T12:00:00');
+        renderJournalDay();
+        closeDateMenu();
+      });
     });
 
     bodyEl.appendChild(el);
@@ -262,6 +266,28 @@ function saveJournalEntry(d, text) {
   if (text.trim()) journalData[key] = text;
   else             delete journalData[key];
   checkBadges();
+}
+
+/**
+ * Guard navigation when there are unsaved edits.
+ * Prompts the user; if they confirm, saves to HackMD first.
+ * @param {Function} navigateFn - called after save (or after declining to save).
+ */
+async function navigateWithSaveCheck(navigateFn) {
+  if (journalHasChanges) {
+    const save = confirm('You have unsaved changes. Save before navigating?');
+    if (save) {
+      const content = _ta?.value || '';
+      saveJournalEntry(journalDate, content);
+      if (_saveBtn) _saveBtn.disabled = true;
+      showStatus('Journal saved ✓');
+      showCyberLoader('Saving Journal');
+      await saveJournalToHackMD();
+      hideCyberLoader();
+    }
+    journalHasChanges = false;
+  }
+  navigateFn();
 }
 
 function formatJournalDate(d) {
