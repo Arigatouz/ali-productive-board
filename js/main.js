@@ -9,10 +9,10 @@ import { showCyberLoader, hideCyberLoader } from './loader.js';
 
 import { initAnalytics, getAnalytics } from './analytics.js';
 import { initHabits, getHabits, getHabitLog } from './habits.js';
-import { initBadges, checkBadges, getBadgesUnlocked } from './badges.js';
+import { initBadges, checkBadges, getBadgesUnlocked, setBadgesJournalCountFn } from './badges.js';
 import { initPomodoro, pomoToggle, pomoReset, pomoSkip, getPomoLog } from './pomodoro.js';
 import { renderFocusTab } from './focus.js';
-import { renderJournalDay, initJournal, loadJournalFromHackMD } from './journal.js';
+import { renderJournalDay, initJournal, loadJournalFromHackMD, getJournalCount } from './journal.js';
 
 import { initTasks, loadTasksFromAPI, renderTasks } from './tasks.js';
 import { initMemory, loadMemoryFromAPI, openMemorySectionEditor, openFileModal, openNewFileModal, filterMemoryDirectory, saveMemoryModal } from './memory.js';
@@ -55,6 +55,7 @@ async function initDashboard() {
   initBadges(data, onDataChange);
   initPomodoro(data, onDataChange);
   initJournal(config);
+  setBadgesJournalCountFn(getJournalCount);
 
   // Build switchMainTab context
   const tabContext = {

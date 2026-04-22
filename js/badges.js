@@ -7,6 +7,9 @@ import { getMaxDailyTasks } from './analytics.js';
 let _badgesUnlocked = {};
 let _pomoLog = {};
 let _onDataChange = null;
+let _getJournalCount = () => 0;
+
+export function setBadgesJournalCountFn(fn) { _getJournalCount = fn; }
 
 export const BADGE_DEFS = [
   { id: 'first_pomo',  icon: '⏱️', name: 'First Pomo',    desc: 'Complete your first Pomodoro session',  check: () => getTodayPomoSessions() >= 1 || getWeekPomoTotal() >= 1 },
@@ -51,7 +54,7 @@ function getAllPomoTotal() {
 }
 
 function getJournalCount() {
-  return Object.keys(JSON.parse(localStorage.getItem('journal') || '{}')).length;
+  return _getJournalCount();
 }
 
 export function checkBadges() {
