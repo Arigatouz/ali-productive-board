@@ -196,7 +196,53 @@ export function renderJournalDay() {
   }
 }
 
-async function saveJournalToHackMD(content) {
+/**
+ * Parse a HackMD journal note (markdown) into a {date: text} object.
+ * Expected format produced by saveJournalToHackMD:
+ *   ## YYYY-MM-DD
+ *
+ *   <entry text>
+ *
+ * ---
+ */
+function parseJournalMarkdown(md) {
+  const entries = {};
+  if (!md) return entries;
+  // Split on section separators and date headers
+  const sectionRe = /^## (\d{4}-\d{2}-\d{2})\s*\n([\s\S]*?)(?=\n---\n|\n*$)/gm;
+  let match;
+  while ((match = sectionRe.exec(md)) !== null) {
+    const date = match[1];
+    const text = match[2].trim();
+    if (date && text) entries[date] = text;
+  }
+  return entries;
+}
+
+/**
+ * Fetch journal entries from HackMD and merge them into localStorage.
+ * Merge strategy: HackMD entries fill dates not present locally;
+ * local entries for the same date are kept (local edits win).
+ * After merging, re-render the current journal day.
+ */
+export async function loadJournalFromHackMD(config) {
+  if (!config?.JOURNAL_NOTE_ID || !config?.API_TOKEN) return;
+  try {
+    const res = await fetch(getFullApiUrl('/notes/' + config.JOURNAL_NOTE_ID, config), {
+      headers: { 'Authorization': 'Bearer ' + config.API_TOKEN }
+    });
+    if (!res.ok) return;
+    const json    = await res.json();
+    const remote  = parseJournalMarkdown(json.content || '');
+    const local   = JSON.parse(localStorage.getItem('journal') || '{}');
+    // Merge: remote entries fill gaps; local entries for the same date win
+    const merged  = { ...remote, ...local };
+    localStorage.setItem('journal', JSON.stringify(merged));
+    renderJournalDay();
+  } catch (err) {
+    console.warn('Failed to load journal from HackMD:', err);
+    /* silent fail — local copy is safe */
+  }(content) {
   if (!_config?.JOURNAL_NOTE_ID || !_config?.API_TOKEN) return;
   const journal  = JSON.parse(localStorage.getItem('journal') || '{}');
   const entries  = Object.entries(journal).sort((a, b) => b[0].localeCompare(a[0]));
