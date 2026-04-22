@@ -12,7 +12,7 @@ import { initHabits, getHabits, getHabitLog } from './habits.js';
 import { initBadges, checkBadges, getBadgesUnlocked } from './badges.js';
 import { initPomodoro, pomoToggle, pomoReset, pomoSkip, getPomoLog } from './pomodoro.js';
 import { renderFocusTab } from './focus.js';
-import { renderJournalDay, initJournal } from './journal.js';
+import { renderJournalDay, initJournal, loadJournalFromHackMD } from './journal.js';
 
 import { initTasks, loadTasksFromAPI, renderTasks } from './tasks.js';
 import { initMemory, loadMemoryFromAPI, openMemorySectionEditor, openFileModal, openNewFileModal, filterMemoryDirectory, saveMemoryModal } from './memory.js';
@@ -120,6 +120,7 @@ async function initDashboard() {
       loadTasksFromAPI(config),
       loadMemoryFromAPI(config),
       loadArticlesFromAPI(config),
+      loadJournalFromHackMD(config),
     ]);
   } else {
     showStatus('Please configure your HackMD settings');
