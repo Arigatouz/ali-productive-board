@@ -338,17 +338,33 @@ export function renderJournalDay() {
  *   <entry text>
  *
  * ---
+ *
+ * Parsing uses only `## YYYY-MM-DD` headers as boundaries so that `---`
+ * horizontal rules inside entry content do not truncate the entry.
  */
 function parseJournalMarkdown(md) {
   const entries = {};
   if (!md) return entries;
-  // Split on section separators and date headers
-  const sectionRe = /^## (\d{4}-\d{2}-\d{2})\s*\n([\s\S]*?)(?=\n---\n|(?![\s\S]))/gm;
-  let match;
-  while ((match = sectionRe.exec(md)) !== null) {
-    const date = match[1];
-    const text = match[2].trim();
-    if (date && text) entries[date] = text;
+  // Locate every date header by position so we can slice between them.
+  // Any text before the first header (e.g. the "# Journal" title line written
+  // by saveJournalToHackMD) is intentionally ignored — it is not entry content.
+  // Note: a literal `## YYYY-MM-DD` line inside entry content would be mistaken
+  // for a new entry boundary. This is an accepted limitation; users should avoid
+  // raw date-header lines inside their entries.
+  const headerRe = /^## (\d{4}-\d{2}-\d{2})[ \t]*$/gm;
+  const headers = [];
+  let m;
+  while ((m = headerRe.exec(md)) !== null) {
+    headers.push({ date: m[1], end: m.index + m[0].length });
+  }
+  for (let i = 0; i < headers.length; i++) {
+    const rawContent = md.slice(
+      headers[i].end,
+      i + 1 < headers.length ? headers[i + 1].index : md.length
+    );
+    // Strip the save-format separator (\n\n---\n\n) between entries, then trim
+    const text = rawContent.replace(/\n\n---\n\n$/, '').trim();
+    if (text) entries[headers[i].date] = text;
   }
   return entries;
 }
