@@ -346,6 +346,11 @@ function parseJournalMarkdown(md) {
   const entries = {};
   if (!md) return entries;
   // Locate every date header by position so we can slice between them.
+  // Any text before the first header (e.g. the "# Journal" title line written
+  // by saveJournalToHackMD) is intentionally ignored — it is not entry content.
+  // Note: a literal `## YYYY-MM-DD` line inside entry content would be mistaken
+  // for a new entry boundary. This is an accepted limitation; users should avoid
+  // raw date-header lines inside their entries.
   const headerRe = /^## (\d{4}-\d{2}-\d{2})[ \t]*$/gm;
   const headers = [];
   let m;
