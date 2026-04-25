@@ -357,11 +357,11 @@ function parseJournalMarkdown(md) {
   const headers = [];
   let m;
   while ((m = commentRe.exec(md)) !== null) {
-    headers.push({ date: m[1], end: m.index + m[0].length });
+    headers.push({ date: m[1], start: m.index, end: m.index + m[0].length });
   }
   if (headers.length) {
     for (let i = 0; i < headers.length; i++) {
-      const raw  = md.slice(headers[i].end, i + 1 < headers.length ? headers[i + 1].index : md.length);
+      const raw  = md.slice(headers[i].end, i + 1 < headers.length ? headers[i + 1].start : md.length);
       const text = raw.trim();
       if (text) entries[headers[i].date] = text;
     }
