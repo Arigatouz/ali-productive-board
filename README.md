@@ -15,6 +15,7 @@
 | **Articles** | Tech reading tracker with status cycle and progress slider |
 | **Focus** | Pomodoro timer, habit tracker, weekly stats, achievements, 12-week heatmap |
 | **Journal** | Daily writing entries, local-first, optional HackMD cloud sync |
+| **Voice Input** | Browser-based speech-to-text (Whisper), supports Arabic, English, and auto-detect modes |
 
 ---
 
@@ -34,6 +35,7 @@ ali-productive-board/
 │   ├── focus.css           ← Pomodoro ring, habits, heatmap, stats gauge, badges
 │   ├── journal.css         ← Journal panel, toolbar, textarea, prompt strip
 │   └── overlays.css        ← Command palette, quick capture, kb modal, cyber loader
+│   └── speech.css          ← Voice input button, recording state, cyber loader overlay
 └── js/
     ├── main.js             ← Entry point — init, imports, window.* exposures
     ├── db.js               ← IndexedDB wrapper (dbGet, dbSet, migrateFromLocalStorage)
@@ -54,6 +56,7 @@ ali-productive-board/
     ├── focus.js            ← renderFocusTab orchestrator
     ├── cmdpalette.js       ← buildCmdList, initCmdPalette, open/close
     ├── capture.js          ← Quick capture modal (task-only)
+    ├── speech.js           ← Browser speech-to-text (Whisper via Transformers.js), language toggle
     └── keyboard.js         ← Global keydown handler, showKbHelp, closeKbModal
 worker/
 └── index.js               ← Cloudflare Worker CORS proxy
@@ -466,6 +469,25 @@ Analytics are tracked automatically whenever you check off a task, complete a Po
 
 A toast notification slides in from the bottom right whenever you unlock a badge. Unlocked badges are saved to the Dashboard Data note.
 
+### Voice Input (Speech-to-Text)
+
+| What | Details |
+|------|---------|
+| Model | `onnx-community/whisper-small` via `@huggingface/transformers` — runs entirely in the browser (WebGPU with WASM fallback) |
+| Languages | Arabic, English, and auto-detect modes — click the `ع`/`EN`/`↔` button to cycle |
+| First load | Downloads ~244MB model (cached by browser after first load, subsequent visits load in seconds) |
+| Shortcut | `Ctrl+Shift+V` to start/stop, `Ctrl+Shift+L` to cycle language |
+| Target | Transcribed text inserts into the active input (Quick Capture, Journal, etc.) |
+| Loading overlay | Full-screen cyber-themed loader with download progress (MB/total, %, ETA, current file name) |
+
+Language modes:
+
+| Mode | Label | Behavior |
+|------|-------|----------|
+| Arabic | `ع` | Forces Whisper to transcribe in Arabic script — best for Arabic speech with English insertions |
+| English | `EN` | English-only transcription |
+| Auto | `↔` | Whisper auto-detects language per segment |
+
 ### Journal Tab
 
 #### Writing and editing
@@ -527,6 +549,8 @@ Click the **Shortcuts** button in the top-right of the header or press `?` to op
 |--------|-----|----------------|
 | Open Command Palette | `⌘ K` | `Ctrl K` |
 | Quick Capture | `⌘ ⇧ C` | `Ctrl Shift C` |
+| Voice Input | `⌘ ⇧ V` | `Ctrl Shift V` |
+| Switch Voice Language | `⌘ ⇧ L` | `Ctrl Shift L` |
 | Show keyboard shortcuts | `?` | `?` |
 | Close or dismiss | `Esc` | `Esc` |
 

@@ -10,3 +10,6 @@ dist/
 .claude
 .playwright-mcp/
 *.png
+docs
+.idea
+

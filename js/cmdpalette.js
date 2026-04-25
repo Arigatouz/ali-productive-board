@@ -10,7 +10,7 @@ let cmdFiltered    = [];
 export function buildCmdList(context) {
   const {
     switchMainTab, applyTheme, showSettingsModal, showKbHelp, toggleQC,
-    pomoToggle, pomoReset, pomoSkip,
+    pomoToggle, pomoReset, pomoSkip, toggleSpeech, cycleLangMode,
   } = context;
 
   CMD_LIST = [
@@ -23,6 +23,8 @@ export function buildCmdList(context) {
     { icon: '↺',  label: 'Reset Timer',          cat: 'Pomodoro', action: pomoReset },
     { icon: '⏭️', label: 'Skip Phase',           cat: 'Pomodoro', action: pomoSkip },
     { icon: '➕', label: 'Add Task (first column)',cat: 'Tasks',   action: () => { switchMainTab('tasks'); setTimeout(() => { const btn = document.querySelector('[data-add]'); btn?.click(); }, 200); } },
+    { icon: '🎙️', label: 'Voice Input',          cat: 'Input',    action: toggleSpeech,                   sc: 'Ctrl+Shift+V' },
+    { icon: '🌐', label: 'Switch Voice Language', cat: 'Input',    action: cycleLangMode,                   sc: 'Ctrl+Shift+L' },
     { icon: '🌗', label: 'Toggle Light/Dark',    cat: 'Theme',    action: () => { const t = document.documentElement.getAttribute('data-theme'); applyTheme(t === 'dark' || t === 'neon-dark' ? 'light' : 'dark'); } },
     { icon: '⚡', label: 'Cycle Theme',          cat: 'Theme',    action: () => { const themes = ['light','dark','neon-dark','neon-light']; const t = document.documentElement.getAttribute('data-theme'); applyTheme(themes[(themes.indexOf(t)+1)%themes.length]); } },
     { icon: '⚙️', label: 'Open Settings',        cat: 'Settings', action: showSettingsModal,              sc: ',' },

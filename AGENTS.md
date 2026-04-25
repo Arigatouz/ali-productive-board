@@ -1,6 +1,4 @@
-# CLAUDE.md
-
-This file provides guidance to Claude Code when working with code in this repository.
+# AGENTS.md
 
 ## Architecture
 
@@ -41,7 +39,7 @@ Tab switching: `switchMainTab(tabName)` in `js/ui.js`. Valid names: `'tasks'`, `
 ## Conventions
 
 - No TypeScript, no bundler — vanilla ES modules with `import`/`export`
-- External dependencies: `marked@9.1.6` loaded via CDN in `index.html`; `@huggingface/transformers@3` loaded lazily via dynamic `import()` on first voice input click
+- External dependencies: `marked@9.1.6` loaded via CDN in `index.html`; `@huggingface/transformers` loaded lazily via dynamic `import()` on first voice input click
 - Module pattern: each `js/*.js` file exports `init*` + domain functions; `main.js` wires them together
 - CSS is per-feature (one file per tab/panel), loaded via `<link>` in `index.html`
 - Task format: `## Section` headers + `- [ ]`/`- [x]` checkboxes, parsed by `parseTaskMarkdown()` in `js/tasks.js`

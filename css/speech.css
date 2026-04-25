@@ -1,0 +1,304 @@
+/* ══ SPEECH BUTTON ══ */
+
+#speechBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+/* ══ LANGUAGE TOGGLE ══ */
+
+.speech-lang-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--accent);
+  cursor: pointer;
+  padding: 0 5px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  transition: all 0.15s ease;
+  margin-left: 4px;
+}
+
+.speech-lang-btn:hover {
+  border-color: var(--accent);
+  box-shadow: var(--neon-glow-soft);
+}
+
+.speech-lang-btn:active {
+  transform: scale(0.92);
+}
+
+#speechBtn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: var(--neon-glow-soft);
+}
+
+#speechBtn.loading {
+  border-color: var(--accent);
+  color: var(--accent);
+  animation: speech-pulse-load 1.2s ease-in-out infinite;
+}
+
+#speechBtn.recording {
+  border-color: #e53e3e;
+  color: #e53e3e;
+  background: rgba(229, 62, 62, 0.08);
+  box-shadow: 0 0 8px rgba(229, 62, 62, 0.3);
+  animation: speech-pulse-rec 1s ease-in-out infinite;
+}
+
+#speechBtn.recording::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid rgba(229, 62, 62, 0.4);
+  animation: speech-ring 1.5s ease-out infinite;
+}
+
+#speechBtn svg {
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+}
+
+@keyframes speech-pulse-load {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes speech-pulse-rec {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+
+@keyframes speech-ring {
+  0% { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+/* ══ SPEECH LOADING OVERLAY (cyber style) ══ */
+
+.speech-overlay-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.82);
+  backdrop-filter: blur(3px);
+}
+
+.speech-overlay-backdrop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent, transparent 2px,
+    rgba(57, 255, 20, 0.022) 2px, rgba(57, 255, 20, 0.022) 4px
+  );
+  pointer-events: none;
+}
+
+#speech-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+}
+
+#speech-overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.speech-overlay-panel {
+  position: relative;
+  width: 380px;
+  padding: 40px 36px 32px;
+  background: rgba(5, 5, 12, 0.97);
+  border: 1px solid var(--accent);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.6),
+    var(--neon-glow),
+    inset 0 0 60px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+}
+
+.speech-overlay-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent, transparent 3px,
+    rgba(255, 255, 255, 0.01) 3px, rgba(255, 255, 255, 0.01) 4px
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Corner brackets */
+.speech-overlay-corner {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-color: var(--accent);
+  border-style: solid;
+  opacity: 0.9;
+  z-index: 2;
+}
+.speech-ctl { top: 7px; left: 7px;   border-width: 2px 0 0 2px; }
+.speech-ctr { top: 7px; right: 7px;  border-width: 2px 2px 0 0; }
+.speech-cbl { bottom: 7px; left: 7px;  border-width: 0 0 2px 2px; }
+.speech-cbr { bottom: 7px; right: 7px; border-width: 0 2px 2px 0; }
+
+.speech-overlay-icon {
+  position: relative;
+  z-index: 2;
+  color: var(--accent);
+  text-align: center;
+  margin-bottom: 14px;
+  filter: drop-shadow(0 0 8px var(--accent));
+  animation: speech-icon-pulse 2s ease-in-out infinite;
+}
+
+@keyframes speech-icon-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(0.92); }
+}
+
+.speech-overlay-title {
+  position: relative;
+  z-index: 2;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  color: var(--accent);
+  text-shadow: var(--neon-glow);
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.speech-overlay-sub {
+  position: relative;
+  z-index: 2;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  color: var(--text-secondary, #5a996a);
+  text-transform: uppercase;
+  opacity: 0.65;
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.speech-overlay-bar-wrap {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.speech-overlay-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2, var(--accent)));
+  box-shadow: 0 0 10px var(--accent), 0 0 20px var(--accent);
+  transition: width 0.3s ease;
+}
+
+.speech-overlay-stats {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+  margin-bottom: 6px;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+}
+
+.sot-size {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.sot-pct {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--accent);
+  text-shadow: var(--neon-glow);
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.sot-eta {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  opacity: 0.8;
+  white-space: nowrap;
+}
+
+.speech-overlay-file {
+  position: relative;
+  z-index: 2;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  text-align: center;
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0.7;
+  min-height: 13px;
+}
+
+.speech-overlay-hex {
+  position: relative;
+  z-index: 2;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  opacity: 0.38;
+  text-align: center;
+  min-height: 13px;
+}

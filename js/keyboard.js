@@ -11,7 +11,7 @@ export function closeKbModal() {
 export function initKeyboard(context) {
   const {
     switchMainTab, openCmdPalette, closeCmdPalette,
-    closeModal, closeQC, toggleQC, pomoToggle,
+    closeModal, closeQC, toggleQC, pomoToggle, toggleSpeech, cycleLangMode,
   } = context;
 
   // Wire keyboard shortcuts help button
@@ -36,6 +36,10 @@ export function initKeyboard(context) {
     if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); openCmdPalette?.(); return; }
     // Ctrl+Shift+C = quick capture
     if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'C') { e.preventDefault(); toggleQC?.(); return; }
+    // Ctrl+Shift+V = voice input
+    if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'V') { e.preventDefault(); toggleSpeech?.(); return; }
+    // Ctrl+Shift+L = cycle voice language
+    if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'L') { e.preventDefault(); cycleLangMode?.(); return; }
     // ? = keyboard shortcuts help
     if (e.key === '?' && !e.ctrlKey && !e.metaKey && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
       showKbHelp(); return;
