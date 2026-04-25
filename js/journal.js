@@ -352,33 +352,53 @@ function parseJournalMarkdown(md) {
   const entries = {};
   if (!md) return entries;
 
-  // ── New format: HTML comment separators (invisible in HackMD rendered view) ──
-  const commentRe = /^<!-- journal:(\d{4}-\d{2}-\d{2}) -->[ \t]*$/gm;
-  const headers = [];
+  // ── Format 1: start + end comment markers ──
+  // <!-- journal:YYYY-MM-DD --> ... <!-- /journal:YYYY-MM-DD -->
+  // Most robust — each entry has explicit boundaries, safe to use --- or ## inside content.
+  const startRe = /^<!-- journal:(\d{4}-\d{2}-\d{2}) -->[ \t]*$/gm;
+  const endRe   = /^<!-- \/journal:\d{4}-\d{2}-\d{2} -->[ \t]*$/gm;
+  const startPositions = [];
+  const endPositions   = [];
   let m;
-  while ((m = commentRe.exec(md)) !== null) {
-    headers.push({ date: m[1], start: m.index, end: m.index + m[0].length });
-  }
-  if (headers.length) {
-    for (let i = 0; i < headers.length; i++) {
-      const raw  = md.slice(headers[i].end, i + 1 < headers.length ? headers[i + 1].start : md.length);
-      const text = raw.trim();
-      if (text) entries[headers[i].date] = text;
+  while ((m = startRe.exec(md)) !== null) startPositions.push({ date: m[1], start: m.index, end: m.index + m[0].length });
+  while ((m = endRe.exec(md)) !== null)   endPositions.push({ start: m.index, end: m.index + m[0].length });
+
+  if (startPositions.length && startPositions.length === endPositions.length) {
+    for (let i = 0; i < startPositions.length; i++) {
+      const text = md.slice(startPositions[i].end, endPositions[i].start).trim();
+      if (text) entries[startPositions[i].date] = text;
     }
+    console.log(`[journal] Parsed ${Object.keys(entries).length} entries via start+end markers`);
     return entries;
   }
 
-  // ── Old-format fallback: split on --- separators ──
-  // Each section that starts with "## YYYY-MM-DD" is one entry.
-  // A bare "## date" heading *inside* an entry's content is safe because
-  // it would only be a boundary if it's the very first thing in a --- section.
-  const sections = md.split(/\n---\n/);
-  for (const section of sections) {
-    const dm = section.match(/(?:^|\n)## (\d{4}-\d{2}-\d{2})[ \t]*\n([\s\S]*)/);
-    if (!dm) continue;
-    const text = dm[2].trim();
-    if (dm[1] && text) entries[dm[1]] = text;
+  // ── Format 2: start-only comment markers (legacy from previous saves) ──
+  // <!-- journal:YYYY-MM-DD --> entries are separated by the next marker
+  if (startPositions.length) {
+    for (let i = 0; i < startPositions.length; i++) {
+      const sliceEnd = (i + 1 < startPositions.length) ? startPositions[i + 1].start : md.length;
+      const text = md.slice(startPositions[i].end, sliceEnd).trim();
+      if (text) entries[startPositions[i].date] = text;
+    }
+    console.log(`[journal] Parsed ${Object.keys(entries).length} entries via start-only markers (legacy)`);
+    return entries;
   }
+
+  // ── Format 3: ## YYYY-MM-DD headers (oldest format) ──
+  // Splits on date-header boundaries so --- and ## inside content are preserved.
+  const headerPositions = [];
+  const headerSplitRe = /^## (\d{4}-\d{2}-\d{2})[ \t]*$/gm;
+  let hm;
+  while ((hm = headerSplitRe.exec(md)) !== null) {
+    headerPositions.push({ date: hm[1], start: hm.index, headerEnd: hm.index + hm[0].length });
+  }
+  for (let i = 0; i < headerPositions.length; i++) {
+    const contentStart = headerPositions[i].headerEnd;
+    const contentEnd   = (i + 1 < headerPositions.length) ? headerPositions[i + 1].start : md.length;
+    let text = md.slice(contentStart, contentEnd).replace(/\n---\s*$/, '').trim();
+    if (text) entries[headerPositions[i].date] = text;
+  }
+  console.log(`[journal] Parsed ${Object.keys(entries).length} entries via ## date header fallback`);
   return entries;
 }
 
@@ -422,7 +442,7 @@ export async function loadJournalFromHackMD(config) {
 async function saveJournalToHackMD() {
   if (!_config?.JOURNAL_NOTE_ID || !_config?.API_TOKEN) return;
   const entries = Object.entries(journalData).sort((a, b) => b[0].localeCompare(a[0]));
-  const md      = '# Journal\n\n' + entries.map(([date, text]) => `<!-- journal:${date} -->\n\n${text}`).join('\n\n');
+  const md      = '# Journal\n\n' + entries.map(([date, text]) => `<!-- journal:${date} -->\n\n${text}\n\n<!-- /journal:${date} -->`).join('\n\n');
   try {
     await fetchWithRetry(getFullApiUrl('/notes/' + _config.JOURNAL_NOTE_ID, _config), {
       method:  'PATCH',

@@ -338,22 +338,28 @@ Here are the key ideas:
 - `:host` lets you style from inside
 - `::slotted()` styles slotted children
 
+<!-- /journal:2026-04-25 -->
+
 <!-- journal:2026-04-24 -->
 
 Yesterday was productive. Shipped the new auth flow.
 
+<!-- /journal:2026-04-24 -->
+
 <!-- journal:2026-04-23 -->
 
 Quiet day. Reviewed three PRs and caught a subtle race condition.
+
+<!-- /journal:2026-04-23 -->
 ```
 
 | Rule | Details |
 |------|---------|
-| Entry boundary | `<!-- journal:YYYY-MM-DD -->` HTML comment on its own line — the only parse boundary |
-| Rendered view | Comments are invisible in HackMD's rendered output |
+| Entry boundary | `<!-- journal:YYYY-MM-DD -->` start marker and `<!-- /journal:YYYY-MM-DD -->` end marker — each on its own line |
+| Rendered view | Both markers are invisible in HackMD's rendered output |
 | Content | Full GFM markdown — headings (`# ## ###`), lists, code blocks, tables, `---` horizontal rules, and even `## YYYY-MM-DD`-shaped headings — all safe inside an entry |
 | Order | Newest entry first; the app re-sorts on every save |
-| Old notes | Notes written before this format are parsed with the old `---` separator as a fallback; they migrate automatically on the next save |
+| Backward compat | Old formats (`## YYYY-MM-DD` headers, or start-only `<!-- journal: -->` markers) are still parsed correctly; they migrate to the new format on the next save |
 
 **Important:** journal entries live in memory (fetched from HackMD on load). If no Journal Note ID is configured, entries are lost when you close or reload the page. Configure the Journal Note ID to make entries permanent.
 
