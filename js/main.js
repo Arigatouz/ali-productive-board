@@ -21,6 +21,7 @@ import { initArticles, loadArticlesFromAPI } from './articles.js';
 import { initCmdPalette, buildCmdList, openCmdPalette, closeCmdPalette } from './cmdpalette.js';
 import { initCapture, toggleQC, closeQC } from './capture.js';
 import { initKeyboard, showKbHelp, closeKbModal } from './keyboard.js';
+import { initSpeech, toggleSpeech, cycleLangMode } from './speech.js';
 
 // ── Data consolidation ────────────────────────────────────────────
 // Central getter for the current in-memory data snapshot (for saveDashboardData)
@@ -82,10 +83,13 @@ async function initDashboard() {
     pomoToggle,
     pomoReset,
     pomoSkip,
+    toggleSpeech,
+    cycleLangMode,
   });
 
   initCmdPalette();
   initCapture();
+  initSpeech();
   initKeyboard({
     switchMainTab:    (tab) => switchMainTab(tab, tabContext),
     openCmdPalette,
@@ -94,6 +98,8 @@ async function initDashboard() {
     closeQC,
     toggleQC,
     pomoToggle,
+    toggleSpeech,
+    cycleLangMode,
   });
 
   // Tasks, memory, articles
