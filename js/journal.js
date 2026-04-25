@@ -332,34 +332,52 @@ export function renderJournalDay() {
 
 /**
  * Parse a HackMD journal note (markdown) into a {date: text} object.
- * Expected format produced by saveJournalToHackMD:
- *   ## YYYY-MM-DD
  *
+ * New format (written by saveJournalToHackMD):
+ *   <!-- journal:YYYY-MM-DD -->
  *   <entry text>
+ *   <!-- journal:YYYY-MM-DD -->
+ *   ...
  *
- * ---
- *
- * Parsing uses only `## YYYY-MM-DD` headers as boundaries so that `---`
- * horizontal rules inside entry content do not truncate the entry.
+ * Old-format fallback (notes written before this change):
+ *   ## YYYY-MM-DD
+ *   <entry text>
+ *   ---
+ *   ## YYYY-MM-DD
+ *   ...
+ *   Splits on \n---\n so that a standalone ## date line inside content
+ *   does not create a false entry boundary.
  */
 function parseJournalMarkdown(md) {
   const entries = {};
   if (!md) return entries;
-  // Locate every date header by position so we can slice between them.
-  const headerRe = /^## (\d{4}-\d{2}-\d{2})[ \t]*$/gm;
+
+  // ── New format: HTML comment separators (invisible in HackMD rendered view) ──
+  const commentRe = /^<!-- journal:(\d{4}-\d{2}-\d{2}) -->[ \t]*$/gm;
   const headers = [];
   let m;
-  while ((m = headerRe.exec(md)) !== null) {
+  while ((m = commentRe.exec(md)) !== null) {
     headers.push({ date: m[1], end: m.index + m[0].length });
   }
-  for (let i = 0; i < headers.length; i++) {
-    const rawContent = md.slice(
-      headers[i].end,
-      i + 1 < headers.length ? headers[i + 1].index : md.length
-    );
-    // Strip the save-format separator (\n\n---\n\n) between entries, then trim
-    const text = rawContent.replace(/\n\n---\n\n$/, '').trim();
-    if (text) entries[headers[i].date] = text;
+  if (headers.length) {
+    for (let i = 0; i < headers.length; i++) {
+      const raw  = md.slice(headers[i].end, i + 1 < headers.length ? headers[i + 1].index : md.length);
+      const text = raw.trim();
+      if (text) entries[headers[i].date] = text;
+    }
+    return entries;
+  }
+
+  // ── Old-format fallback: split on --- separators ──
+  // Each section that starts with "## YYYY-MM-DD" is one entry.
+  // A bare "## date" heading *inside* an entry's content is safe because
+  // it would only be a boundary if it's the very first thing in a --- section.
+  const sections = md.split(/\n---\n/);
+  for (const section of sections) {
+    const dm = section.match(/(?:^|\n)## (\d{4}-\d{2}-\d{2})[ \t]*\n([\s\S]*)/);
+    if (!dm) continue;
+    const text = dm[2].trim();
+    if (dm[1] && text) entries[dm[1]] = text;
   }
   return entries;
 }
@@ -404,7 +422,7 @@ export async function loadJournalFromHackMD(config) {
 async function saveJournalToHackMD() {
   if (!_config?.JOURNAL_NOTE_ID || !_config?.API_TOKEN) return;
   const entries = Object.entries(journalData).sort((a, b) => b[0].localeCompare(a[0]));
-  const md      = '# Journal\n\n' + entries.map(([date, text]) => `## ${date}\n\n${text}\n`).join('\n---\n\n');
+  const md      = '# Journal\n\n' + entries.map(([date, text]) => `<!-- journal:${date} -->\n\n${text}`).join('\n\n');
   try {
     await fetchWithRetry(getFullApiUrl('/notes/' + _config.JOURNAL_NOTE_ID, _config), {
       method:  'PATCH',
