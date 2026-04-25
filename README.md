@@ -319,23 +319,46 @@ The app reads this note on load, updates in-memory state as you work, and deboun
 
 ### Journal Note (optional)
 
-When you add a Journal Note ID in Settings, the app syncs all local entries to HackMD:
+When you add a Journal Note ID in Settings, the app uses HackMD as the single source of truth for journal entries. On load it fetches the note, parses all entries into memory, and renders today's entry. On save it writes the full journal back.
+
+The note format:
 
 ```markdown
 # Journal
 
-## 2025-04-05
+## 2026-04-25
 
-Today I focused on...
+# My Article Title
+
+Today I read about Shadow DOM and CSS encapsulation.
+
+Here are the key ideas:
+
+- CSS leaks into Shadow DOM from the host page
+- `:host` lets you style from inside
+- `::slotted()` styles slotted children
 
 ---
 
-## 2025-04-04
+## 2026-04-24
 
-Yesterday was productive because...
+Yesterday was productive. Shipped the new auth flow.
+
+---
+
+## 2026-04-23
+
+Quiet day. Reviewed three PRs and caught a subtle race condition.
 ```
 
-Entries are always saved locally first. HackMD is a backup, not a requirement.
+| Rule | Details |
+|------|---------|
+| Date headers | `## YYYY-MM-DD` on its own line — this is the only entry boundary |
+| Separator | `---` between entries is decorative only; it is not a parse boundary |
+| Content | Full GFM markdown — headings, lists, code blocks, tables, `---` horizontal rules — all safe to use inside an entry |
+| Order | Newest entry first; the app re-sorts on every save |
+
+**Important:** journal entries live in memory (fetched from HackMD on load). If no Journal Note ID is configured, entries are lost when you close or reload the page. Configure the Journal Note ID to make entries permanent.
 
 ---
 
@@ -442,13 +465,34 @@ A toast notification slides in from the bottom right whenever you unlock a badge
 
 ### Journal Tab
 
+#### Writing and editing
+
 | Feature | Details |
 |---------|---------|
-| Date navigation | Left and right arrows to move between days |
-| Writing prompts | Rotates through 8 daily prompts shown at the top |
-| Save | `Cmd/Ctrl + Enter` or the Save button |
-| Cloud sync | Syncs to HackMD silently if a Journal Note ID is configured |
-| Offline | All entries stay in `localStorage` and work with no internet connection |
+| Editor | Plain textarea — write in standard markdown |
+| Preview | After saving, the entry is rendered as formatted markdown (GFM + line breaks) |
+| Edit button | Appears in preview mode — click it to go back to the raw editor |
+| Writing prompts | A daily prompt rotates through 8 questions and shows above the editor for today's entry only |
+| Save | `Cmd/Ctrl + Enter` or the **Save** button; the button is disabled until you make a change |
+
+#### Navigation
+
+| Feature | Details |
+|---------|---------|
+| Prev / Next arrows | Step one day back or forward |
+| Today button | Jump straight to today's entry from any date |
+| History menu | Calendar icon opens a dropdown listing every date that has an entry, with word count — click any row to jump to it |
+| Unsaved changes | Navigating away with unsaved text triggers a save prompt so you don't lose work |
+
+#### Sync and storage
+
+| Feature | Details |
+|---------|---------|
+| In-memory store | All entries live in memory — no `localStorage` writes; HackMD is the single source of truth |
+| Load on startup | When a Journal Note ID is configured, the app fetches all entries from HackMD into memory on every page load |
+| Save to HackMD | Saving an entry immediately syncs the full journal back to HackMD |
+| No HackMD configured | Entries are session-only and lost on reload — configure the Journal Note ID to make them permanent |
+| Markdown support | Full GFM: headings, bold/italic, lists, code blocks, tables, `---` horizontal rules are all rendered correctly and do not interfere with entry parsing |
 
 ### Command Palette
 
@@ -594,7 +638,6 @@ Config is stored in IndexedDB, not localStorage. Use DevTools → Application �
 | Key | What it stores |
 |-----|---------------|
 | `pomo_state` | Current timer state (phase, remaining seconds, session count) |
-| `journal` | `{date: markdownText}` — all journal entries |
 
 ### HackMD Dashboard Data note
 
