@@ -244,23 +244,25 @@ async function loadModel() {
   const makeCb = () => (p) => handleProgress(p);
 
   try {
-    showOverlay('INITIALIZING VOICE', 'PREPARING DOWNLOAD');
-    transcriber = await pipeline('automatic-speech-recognition', MODEL_ID, {
-      dtype: { encoder_model: 'fp32', decoder_model_merged: 'q4' },
-      device: 'webgpu',
-      progress_callback: makeCb(),
-    });
-  } catch {
-    resetDlState();
-    showOverlay('INITIALIZING VOICE', 'FALLBACK: WASM MODE');
-    transcriber = await pipeline('automatic-speech-recognition', MODEL_ID, {
-      dtype: { encoder_model: 'fp32', decoder_model_merged: 'q4' },
-      device: 'wasm',
-      progress_callback: makeCb(),
-    });
+    try {
+      showOverlay('INITIALIZING VOICE', 'PREPARING DOWNLOAD');
+      transcriber = await pipeline('automatic-speech-recognition', MODEL_ID, {
+        dtype: { encoder_model: 'fp32', decoder_model_merged: 'q4' },
+        device: 'webgpu',
+        progress_callback: makeCb(),
+      });
+    } catch {
+      resetDlState();
+      showOverlay('INITIALIZING VOICE', 'FALLBACK: WASM MODE');
+      transcriber = await pipeline('automatic-speech-recognition', MODEL_ID, {
+        dtype: { encoder_model: 'fp32', decoder_model_merged: 'q4' },
+        device: 'wasm',
+        progress_callback: makeCb(),
+      });
+    }
+  } finally {
+    isLoading = false;
   }
-
-  isLoading = false;
   return transcriber;
 }
 
@@ -275,7 +277,8 @@ async function transcribeChunk(audioData) {
     if (lang) opts.language = lang;
     const result = await transcriber(audioData, opts);
     const text = (result?.text || '').trim();
-    if (!text || text === '[BLANK_AUDIO]' || (text.startsWith('(') && text.endsWith(')'))) return '';
+    if (!text || text === '[BLANK_AUDIO]' || text === '[Music]' || text === '♪' ||
+        (text.startsWith('(') && text.endsWith(')'))) return '';
     return text;
   } catch (err) {
     console.warn('STT transcription error:', err);
@@ -299,6 +302,7 @@ function startMicCapture(onAudio) {
       mediaStream = stream;
       audioContext = new AudioContext({ sampleRate: SAMPLE_RATE });
       const source = audioContext.createMediaStreamSource(stream);
+      // Note: ScriptProcessorNode is deprecated; consider migrating to AudioWorklet in the future.
       scriptProcessor = audioContext.createScriptProcessor(4096, 1, 1);
       scriptProcessor.onaudioprocess = (event) => {
         const channelData = event.inputBuffer.getChannelData(0);
@@ -368,7 +372,7 @@ export async function toggleSpeech() {
     isRecording = true;
 
     await startMicCapture((chunk) => {
-      audioBuffer.push(...chunk);
+      for (let i = 0; i < chunk.length; i++) audioBuffer.push(chunk[i]);
       if (audioBuffer.length >= CHUNK_SAMPLES) {
         const toProcess = new Float32Array(audioBuffer.splice(0, CHUNK_SAMPLES));
         transcribeChunk(toProcess).then(text => {
@@ -391,6 +395,7 @@ export async function toggleSpeech() {
   }
 }
 
+/** Returns true while mic is actively recording. Useful for external modules to check recording state. */
 export function isSpeechReading() {
   return isRecording;
 }
