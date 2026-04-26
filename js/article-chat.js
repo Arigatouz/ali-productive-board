@@ -2,6 +2,7 @@
 
 import { callAI, extractUrls, openInNewTab, getAIConfig } from './ai-config.js';
 import { showStatus } from './ui.js';
+import { showCyberLoader, hideCyberLoader } from './loader.js';
 
 async function fetchArticleText(url, config) {
   try {
@@ -36,6 +37,16 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
+// Post-processes marked HTML: citation links [n] → pill badge, all links → new tab
+function linkifyCitations(html) {
+  let out = html.replace(
+    /<a href="([^"]+)">(\[\d+\])<\/a>/g,
+    '<a href="$1" class="ac-citation" target="_blank" rel="noopener">$2</a>'
+  );
+  out = out.replace(/<a href="([^"]+)"(?![^>]*target=)>/g, '<a href="$1" target="_blank" rel="noopener">');
+  return out;
+}
+
 function renderMessages(container) {
   if (!container) return;
   const messagesHtml = chatHistory
@@ -44,7 +55,7 @@ function renderMessages(container) {
       if (m.role === 'user') {
         return `<div class="ac-msg ac-msg-user"><div class="ac-msg-role">You</div><div class="ac-msg-text">${escapeHtml(m.content)}</div></div>`;
       }
-      const rendered = window.marked.parse(m.content || '');
+      const rendered = linkifyCitations(window.marked.parse(m.content || ''));
       const urls = extractUrls(m.content);
       const urlLinks = urls.length
         ? `<div class="ac-msg-links">${urls.map(u => `<a href="${escapeHtml(u)}" target="_blank" rel="noopener" class="ac-link">${escapeHtml(u)}</a>`).join('')}</div>`
@@ -93,6 +104,7 @@ async function sendChat(userInput) {
   const container = document.getElementById('acMessages');
   renderMessages(container);
   setMessageLoading(container, true);
+  showCyberLoader('Processing Query');
 
   try {
     const response = await callAI(messages);
@@ -103,6 +115,7 @@ async function sendChat(userInput) {
     renderMessages(container);
     showStatus('AI request failed — check your API key');
   } finally {
+    hideCyberLoader();
     setMessageLoading(container, false);
   }
 }
@@ -151,6 +164,7 @@ export function initArticleChat(config) {
       if (!url) return;
 
       fetchBtn.disabled = true;
+      showCyberLoader('Fetching Article');
 
       try {
         fetchBtn.textContent = 'Reading…';
@@ -188,6 +202,7 @@ export function initArticleChat(config) {
       } catch (err) {
         showStatus('Failed to fetch article: ' + err.message);
       } finally {
+        hideCyberLoader();
         fetchBtn.textContent = 'Fetch';
         fetchBtn.disabled = false;
       }

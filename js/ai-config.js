@@ -87,11 +87,23 @@ export async function callPerplexity(messages, options = {}) {
   const data = await res.json();
   const content = data.choices?.[0]?.message?.content || '';
   const citations = Array.isArray(data.citations) ? data.citations : [];
-  if (citations.length) {
-    const links = citations.map((u, i) => `[[${i + 1}]](${u})`).join('  ');
-    return content + `\n\n---\n*Sources: ${links}*`;
-  }
-  return content;
+
+  if (!citations.length) return content;
+
+  // Replace inline [n] citation markers with clickable markdown links
+  const linked = content.replace(/\[([1-9]\d?)\]/g, (match, num) => {
+    const url = citations[parseInt(num, 10) - 1];
+    return url ? `[[${num}]](${url})` : match;
+  });
+
+  // Build a numbered source list using the bare domain name as link text
+  const sourceList = citations.map((u, i) => {
+    let label = u;
+    try { label = new URL(u).hostname.replace(/^www\./, ''); } catch {}
+    return `${i + 1}. [${label}](${u})`;
+  }).join('\n');
+
+  return `${linked}\n\n---\n**Sources**\n\n${sourceList}`;
 }
 
 export async function callAnthropic(messages, options = {}) {

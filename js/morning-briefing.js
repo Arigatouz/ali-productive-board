@@ -3,6 +3,7 @@
 import { callAI, getAIConfig } from './ai-config.js';
 import { showStatus } from './ui.js';
 import { toggleSpeech } from './speech.js';
+import { showCyberLoader, hideCyberLoader } from './loader.js';
 
 let briefingText = '';
 let isSpeaking = false;
@@ -188,6 +189,7 @@ export async function generateBriefing() {
 
   if (genBtn) { genBtn.disabled = true; genBtn.textContent = 'Generating…'; }
   if (briefingEl) briefingEl.textContent = '';
+  showCyberLoader('Generating Briefing');
 
   try {
     const messages = [
@@ -214,6 +216,7 @@ export async function generateBriefing() {
     if (briefingEl) briefingEl.textContent = `Error: ${err.message}`;
     showStatus('Briefing failed — check API key');
   } finally {
+    hideCyberLoader();
     if (genBtn) { genBtn.disabled = false; genBtn.textContent = 'Generate Briefing'; }
   }
 }

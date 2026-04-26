@@ -4,6 +4,7 @@ import { callAI, extractUrls, openInNewTab, getAIConfig } from './ai-config.js';
 import { getFullApiUrl } from './api.js';
 import { showStatus } from './ui.js';
 import { dbGet } from './db.js';
+import { showCyberLoader, hideCyberLoader } from './loader.js';
 
 let brainstormData = [];
 let isModified = false;
@@ -25,9 +26,22 @@ function parseBrainstormMarkdown(md) {
   });
 }
 
+// Post-processes marked HTML: citation links [n] → pill badge, all links → new tab
+function linkifyCitations(html) {
+  // Citation links like <a href="url">[1]</a> → add bs-citation class
+  let out = html.replace(
+    /<a href="([^"]+)">(\[\d+\])<\/a>/g,
+    '<a href="$1" class="bs-citation" target="_blank" rel="noopener">$2</a>'
+  );
+  // All other links without a target → open in new tab
+  out = out.replace(/<a href="([^"]+)"(?![^>]*target=)>/g, '<a href="$1" target="_blank" rel="noopener">');
+  return out;
+}
+
 function renderMarkdown(content) {
   if (!content) return '<em style="opacity:0.4">No content yet — click ✎ to edit</em>';
-  return window.marked ? window.marked.parse(content) : escapeHtml(content);
+  const html = window.marked ? window.marked.parse(content) : escapeHtml(content);
+  return linkifyCitations(html);
 }
 
 function toBrainstormMarkdown(sessions) {
@@ -115,6 +129,7 @@ async function brainstormWithAI(idx) {
   if (!session) return;
 
   showStatus('Brainstorming with AI…');
+  showCyberLoader('Expanding Ideas');
   try {
     const messages = [
       { role: 'system', content: 'You are a creative brainstorming partner. Help explore ideas, suggest alternatives, and ask probing questions. Respond in markdown. Be concise but insightful. Support both Arabic and English.' },
@@ -128,6 +143,8 @@ async function brainstormWithAI(idx) {
     showStatus('AI suggestions added');
   } catch (err) {
     showStatus('Brainstorm failed: ' + err.message);
+  } finally {
+    hideCyberLoader();
   }
 }
 
@@ -159,6 +176,7 @@ export async function saveBrainstormToHackMD(config) {
   }
   const md = toBrainstormMarkdown(brainstormData);
   const saveBtn = document.getElementById('bsSaveBtn');
+  showCyberLoader('Saving Brainstorm');
   try {
     if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Saving…'; }
     const res = await fetch(getFullApiUrl(`/notes/${config.BRAINSTORM_NOTE_ID}`, config), {
@@ -175,6 +193,7 @@ export async function saveBrainstormToHackMD(config) {
   } catch (err) {
     showStatus('Save failed: ' + err.message);
   } finally {
+    hideCyberLoader();
     if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save to HackMD'; }
   }
 }

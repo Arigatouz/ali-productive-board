@@ -277,6 +277,13 @@ header::after {
     overflow: hidden;
   }
 
+  /* ─ Brainstorm / Chat panels ─ */
+  #brainstormPanel.tab-panel.active,
+  #chatPanel.tab-panel.active {
+    min-height: 0;
+    overflow: hidden;
+  }
+
   .memory-content-area {
     flex: 1;
     overflow-y: auto;
