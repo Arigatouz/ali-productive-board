@@ -19,6 +19,9 @@
   <link rel="stylesheet" href="css/journal.css">
   <link rel="stylesheet" href="css/overlays.css">
   <link rel="stylesheet" href="css/speech.css">
+  <link rel="stylesheet" href="css/article-chat.css">
+  <link rel="stylesheet" href="css/morning-briefing.css">
+  <link rel="stylesheet" href="css/brainstorm.css">
   <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -43,6 +46,9 @@
         <button id="articlesTabBtn">Articles</button>
         <button id="focusTabBtn">Focus</button>
         <button id="journalTabBtn">Journal</button>
+        <button id="chatTabBtn">Chat</button>
+        <button id="briefingTabBtn">Briefing</button>
+        <button id="brainstormTabBtn">Brainstorm</button>
       </div>
       <div class="view-toggle" id="taskViewToggle">
         <button id="boardViewBtn" class="active">Board</button>
@@ -124,15 +130,15 @@
             <line x1="8" y1="23" x2="16" y2="23"/>
           </svg>
         </button>
-        <button id="speechLangBtn" class="speech-lang-btn" title="Arabic — handles Arabic+English mix">ع</button>
+        <button id="speechLangBtn" class="speech-lang-btn" title="English only">EN</button>
       <button id="settingsBtn" title="Settings" style="padding: 10px; display: flex; align-items: center;">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"></circle>
           <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
         </svg>
       </button>
-      <button id="saveBtn" class="primary" disabled>Save to HackMD</button>
-      <button id="articlesSaveBtn" class="primary" disabled style="display:none;">Save to HackMD</button>
+      <button id="saveBtn" class="primary" disabled>Save<span class="btn-label-suffix"> to HackMD</span></button>
+      <button id="articlesSaveBtn" class="primary" disabled style="display:none;">Save<span class="btn-label-suffix"> to HackMD</span></button>
     </div>
   </header>
 
@@ -293,6 +299,51 @@
     </div>
   </div>
 
+  <!-- ARTICLE CHAT TAB PANEL -->
+  <div class="tab-panel" id="chatPanel">
+    <div class="ac-panel">
+      <div class="ac-article-bar">
+        <input type="url" id="acUrlInput" placeholder="Paste article URL to discuss…">
+        <button id="acFetchBtn">Fetch</button>
+        <button class="ac-clear-btn" id="acClearBtn">Clear</button>
+      </div>
+      <div id="acArticleTitle" class="ac-article-title"></div>
+      <div class="ac-messages" id="acMessages"></div>
+      <div class="ac-input-bar">
+        <textarea id="acInput" rows="1" placeholder="Ask about the article or any topic…"></textarea>
+        <button id="acSendBtn" class="primary">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MORNING BRIEFING TAB PANEL -->
+  <div class="tab-panel" id="briefingPanel">
+    <div class="briefing-panel">
+      <div class="briefing-icon">☀️</div>
+      <div class="briefing-title">Morning Briefing</div>
+      <div class="briefing-subtitle">AI-powered summary of your day</div>
+      <div class="briefing-actions">
+        <button id="briefingGenBtn" class="primary-btn">Generate Briefing</button>
+        <button id="briefingSpeakBtn" disabled>🔊 Speak</button>
+        <button id="briefingVoiceBtn">🎙️ Voice Chat</button>
+      </div>
+      <div id="briefingText" class="briefing-output"></div>
+    </div>
+  </div>
+
+  <!-- BRAINSTORM TAB PANEL -->
+  <div class="tab-panel" id="brainstormPanel">
+    <div class="bs-panel">
+      <div class="bs-toolbar">
+        <button id="bsAddBtn" class="primary">+ New Session</button>
+        <button id="bsSaveBtn">Save to HackMD</button>
+      </div>
+      <div class="bs-sessions" id="bsSessions">
+        <div class="bs-empty">No sessions yet. Click + New Session to start.</div>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL (shared for memory) -->
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal">
@@ -366,6 +417,9 @@
       <div class="kb-row"><div class="kb-action">Articles tab</div><div class="kb-os"><kbd class="kb-chip">3</kbd></div><div class="kb-os"><kbd class="kb-chip">3</kbd></div></div>
       <div class="kb-row"><div class="kb-action">Focus tab</div><div class="kb-os"><kbd class="kb-chip">4</kbd></div><div class="kb-os"><kbd class="kb-chip">4</kbd></div></div>
       <div class="kb-row"><div class="kb-action">Journal tab</div><div class="kb-os"><kbd class="kb-chip">5</kbd></div><div class="kb-os"><kbd class="kb-chip">5</kbd></div></div>
+      <div class="kb-row"><div class="kb-action">Chat tab</div><div class="kb-os"><kbd class="kb-chip">6</kbd></div><div class="kb-os"><kbd class="kb-chip">6</kbd></div></div>
+      <div class="kb-row"><div class="kb-action">Briefing tab</div><div class="kb-os"><kbd class="kb-chip">7</kbd></div><div class="kb-os"><kbd class="kb-chip">7</kbd></div></div>
+      <div class="kb-row"><div class="kb-action">Brainstorm tab</div><div class="kb-os"><kbd class="kb-chip">8</kbd></div><div class="kb-os"><kbd class="kb-chip">8</kbd></div></div>
 
       <div class="kb-section-label">Pomodoro Timer</div>
       <div class="kb-row"><div class="kb-action">Start / Pause timer</div><div class="kb-os"><kbd class="kb-chip">⌃</kbd><kbd class="kb-chip">⌥</kbd><kbd class="kb-chip">T</kbd></div><div class="kb-os"><kbd class="kb-chip">Ctrl</kbd><kbd class="kb-chip">Alt</kbd><kbd class="kb-chip">T</kbd></div></div>

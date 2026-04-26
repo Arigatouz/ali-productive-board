@@ -2,14 +2,20 @@
 
 export function getFullApiUrl(path, config) {
   const baseUrl = 'https://api.hackmd.io/v1';
-  const fullUrl = baseUrl + path;
+  const normalizedPath = path.startsWith('/') ? path : '/' + path;
+  const fullUrl = baseUrl + normalizedPath;
 
   if (config && config.CORS_PROXY) {
     if (config.CORS_PROXY.includes('workers.dev')) {
+      // Proxy URL may be ".../hackmd/" or ".../hackmd" — normalize to always end with /
       const proxyBase = config.CORS_PROXY.endsWith('/')
         ? config.CORS_PROXY
         : config.CORS_PROXY + '/';
-      return `${proxyBase}hackmd${path}`;
+      // If proxy already contains /hackmd, path goes after it; otherwise append hackmd/
+      if (proxyBase.endsWith('/hackmd/')) {
+        return proxyBase + normalizedPath.slice(1); // strip leading /
+      }
+      return `${proxyBase}hackmd${normalizedPath}`;
     }
     return config.CORS_PROXY + encodeURIComponent(fullUrl);
   }

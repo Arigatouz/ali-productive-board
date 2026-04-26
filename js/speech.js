@@ -24,7 +24,7 @@ const LANG_MODES = [
   { lang: 'english', label: 'EN',  shortLabel: 'EN', tip: 'English only' },
   { lang: null,      label: 'MIX', shortLabel: '↔',  tip: 'Auto-detect language' },
 ];
-let langModeIdx = 0;
+let langModeIdx = 1;
 
 function currentLangMode() { return LANG_MODES[langModeIdx]; }
 
@@ -400,6 +400,9 @@ export function initSpeech() {
   if (btn) btn.addEventListener('click', toggleSpeech);
   const langBtn = document.getElementById('speechLangBtn');
   if (langBtn) {
+    const mode = currentLangMode();
+    langBtn.textContent = mode.shortLabel;
+    langBtn.title = mode.tip;
     langBtn.addEventListener('click', (e) => { e.stopPropagation(); cycleLangMode(); });
   }
 }

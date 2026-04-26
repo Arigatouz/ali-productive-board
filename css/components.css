@@ -85,6 +85,76 @@ button:disabled {
   border: 1px solid var(--border);
 }
 
+/* ── Main nav: flat underline tabs (overrides .view-toggle) ── */
+#mainTabToggle {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin-left: 20px;
+  gap: 0;
+  align-self: stretch;
+  align-items: stretch;
+  overflow-x: auto;
+  scrollbar-width: none;
+  min-width: 0;
+}
+
+#mainTabToggle::-webkit-scrollbar { display: none; }
+
+#mainTabToggle button {
+  border-radius: 0;
+  padding: 0 11px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+  background: transparent;
+  font-size: 10.5px;
+  letter-spacing: 0.09em;
+  transition: color 0.15s, border-color 0.15s;
+  box-shadow: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+#mainTabToggle button:hover {
+  color: var(--text-secondary);
+  background: transparent;
+  box-shadow: none;
+}
+
+#mainTabToggle button.active {
+  background: transparent;
+  color: var(--accent);
+  border: none;
+  border-bottom: 2px solid var(--accent);
+  margin-bottom: -1px;
+  box-shadow: none;
+}
+
+:root[data-theme="neon-dark"] #mainTabToggle button.active,
+:root[data-theme="neon-light"] #mainTabToggle button.active {
+  text-shadow: 0 0 10px var(--accent);
+}
+
+/* Theme button: hide text label, just show color swatches */
+#themeLabel { display: none; }
+
+.theme-picker-btn {
+  padding: 6px 10px;
+}
+
+.theme-swatch-dot {
+  width: 9px;
+  height: 9px;
+}
+
+/* Help/Shortcuts button: icon only */
+#helpBtn > span { display: none; }
+#helpBtn { padding: 8px 10px; }
+
 /* Search box */
 .search-box {
   background: var(--bg-card);

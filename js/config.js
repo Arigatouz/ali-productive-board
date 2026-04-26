@@ -2,6 +2,7 @@
 
 import { dbGet, dbSet } from './db.js';
 import { showStatus, onSettingsSaveRef } from './ui.js';
+import { renderAISettingsSection, populateAISettingsFields, collectAISettingsFields, saveAIConfig } from './ai-config.js';
 
 // Load all config keys from IDB; returns a config object
 export async function loadConfig() {
@@ -31,6 +32,7 @@ export async function loadConfig() {
     JOURNAL_NOTE_ID: JOURNAL_NOTE_ID || '',
     DATA_NOTE_ID:    DATA_NOTE_ID    || '',
     CORS_PROXY:      CORS_PROXY      || '',
+    BRAINSTORM_NOTE_ID: (await dbGet('brainstorm_id')) || '',
   };
 }
 
@@ -50,6 +52,7 @@ export async function saveConfig(fields, config) {
     journalId:  'journal_id',
     dataId:     'data_id',
     corsProxy:  'cors_proxy',
+    brainstormId: 'brainstorm_id',
   };
   const cfgKeyMap = {
     apiToken:   'API_TOKEN',
@@ -167,6 +170,8 @@ export function showSettingsModal(config, onSave) {
           </div>
         </div>
       </div>
+
+      ${renderAISettingsSection()}
     </div>
   `;
 
@@ -178,6 +183,7 @@ export function showSettingsModal(config, onSave) {
   setVal('configArticlesId',config.ARTICLES_NOTE_ID);
   setVal('configJournalId', config.JOURNAL_NOTE_ID);
   setVal('configDataId',    config.DATA_NOTE_ID);
+  populateAISettingsFields();
 
   modalOverlay.classList.add('visible');
   modalOverlay.dataset.type = 'settings';
@@ -194,6 +200,8 @@ export function showSettingsModal(config, onSave) {
       journalId:  getVal('configJournalId'),
       dataId:     getVal('configDataId'),
     }, config);
+    await saveAIConfig(collectAISettingsFields());
+    config.BRAINSTORM_NOTE_ID = (await dbGet('brainstorm_id')) || '';
     showStatus('Settings saved. Refreshing…');
     setTimeout(() => location.reload(), 1000);
   };
