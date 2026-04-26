@@ -70,12 +70,10 @@ async function speakGoogle(text) {
   const lang = document.getElementById('speechLangBtn')?.textContent || 'ع';
   const voice = lang === 'ع' ? 'ar-XA-Standard-A' : 'en-US-Standard-A';
 
-  let proxyUrl = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${key}`;
-  if (config.cors_proxy) {
-    proxyUrl = config.cors_proxy + encodeURIComponent(proxyUrl);
-  }
+  // Google TTS supports browser CORS with a key param — call directly without proxy
+  const ttsUrl = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${key}`;
 
-  const res = await fetch(proxyUrl, {
+  const res = await fetch(ttsUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

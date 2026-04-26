@@ -17,7 +17,7 @@ async function fetchArticleText(url, config) {
     const doc = new DOMParser().parseFromString(html, 'text/html');
     doc.querySelectorAll('script,style,nav,header,footer,aside,[role="banner"],[role="navigation"],[role="complementary"],noscript').forEach(el => el.remove());
     const article = doc.querySelector('article,[role="main"],main,.post-content,.article-content,.entry-content,.content') || doc.body;
-    const text = (article?.innerText || article?.textContent || '').replace(/\s{3,}/g, '\n\n').trim();
+    const text = (article?.textContent || '').replace(/\s{3,}/g, '\n\n').trim();
     return text.slice(0, 12000);
   } catch {
     return '';
@@ -192,7 +192,7 @@ export function initArticleChat(config) {
 
         // Pin summary at top — keep it visible while follow-up questions are asked below
         chatHistory = [];
-        const rendered = window.marked ? window.marked.parse(response) : response;
+        const rendered = linkifyCitations(window.marked ? window.marked.parse(response) : response);
         summaryHtml = `<div class="ac-msg ac-msg-assistant ac-msg-summary"><div class="ac-msg-role">Summary</div><div class="ac-msg-text">${rendered}</div></div>`;
         if (container) {
           container.innerHTML = summaryHtml;

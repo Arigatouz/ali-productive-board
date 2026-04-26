@@ -27,6 +27,18 @@ import { initMorningBriefing, generateBriefing, speakBriefing } from './morning-
 import { initBrainstorm, loadBrainstormFromHackMD, saveBrainstormToHackMD, renderBrainstorm } from './brainstorm.js';
 import { loadAIConfig, saveAIConfig } from './ai-config.js';
 
+// ── Secure marked configuration ────────────────────────────────────
+// Drop raw HTML blocks before they reach innerHTML. marked v9 passes raw HTML
+// blocks through as-is; returning '' from the html renderer discards them while
+// leaving all markdown-generated elements (links, bold, code, etc.) intact.
+if (window.marked) {
+  window.marked.use({
+    renderer: {
+      html() { return ''; },
+    },
+  });
+}
+
 // ── Data consolidation ────────────────────────────────────────────
 // Central getter for the current in-memory data snapshot (for saveDashboardData)
 function getCurrentData() {

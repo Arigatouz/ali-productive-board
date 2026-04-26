@@ -32,9 +32,6 @@ export async function loadAIConfig() {
     )
   );
   aiConfig = Object.fromEntries(entries);
-  // Also pull cors_proxy from the main config key (same IDB store)
-  const corsProxy = await dbGet('cors_proxy');
-  aiConfig.cors_proxy = corsProxy || '';
   return aiConfig;
 }
 
