@@ -1,4 +1,4 @@
-name = "ali-productive-worker-wrangler"
+name = "hackmd-proxy"
 main = "worker/index.js"
 compatibility_date = "2024-04-03"
 
