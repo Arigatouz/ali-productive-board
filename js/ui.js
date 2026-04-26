@@ -51,7 +51,7 @@ export function getActiveMainTab() { return _activeMainTab; }
 // switchMainTab — pass a context object with renderFocusTab and renderJournalDay refs
 export function switchMainTab(tab, context = {}) {
   _activeMainTab = tab;
-  const ALL_TABS = ['tasks', 'memory', 'articles', 'focus', 'journal'];
+  const ALL_TABS = ['tasks', 'memory', 'articles', 'focus', 'journal', 'chat', 'briefing', 'brainstorm'];
   ALL_TABS.forEach(t => {
     document.getElementById(t + 'TabBtn')?.classList.toggle('active', t === tab);
     document.getElementById(t + 'Panel')?.classList.toggle('active', t === tab);

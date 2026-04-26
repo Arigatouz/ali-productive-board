@@ -48,7 +48,7 @@ export function initKeyboard(context) {
     if (e.ctrlKey && e.altKey && e.key === 't') { e.preventDefault(); pomoToggle?.(); return; }
     // Number keys 1-5 for tab switch (no modifier, not in input)
     if (!e.ctrlKey && !e.metaKey && !e.altKey && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
-      const tabMap = { '1': 'tasks', '2': 'memory', '3': 'articles', '4': 'focus', '5': 'journal' };
+      const tabMap = { '1': 'tasks', '2': 'memory', '3': 'articles', '4': 'focus', '5': 'journal', '6': 'chat', '7': 'briefing', '8': 'brainstorm' };
       if (tabMap[e.key]) { switchMainTab(tabMap[e.key]); return; }
     }
   });

@@ -1,0 +1,120 @@
+/* ══ MORNING BRIEFING ══ */
+
+.briefing-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 40px 20px;
+  height: 100%;
+  min-height: 0;
+}
+
+.briefing-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  filter: drop-shadow(0 0 12px var(--accent));
+}
+
+.briefing-title {
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--accent);
+  text-shadow: var(--neon-glow);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.briefing-subtitle {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 28px;
+}
+
+.briefing-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.briefing-actions button {
+  padding: 10px 20px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.briefing-actions button:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: var(--neon-glow-soft);
+}
+
+.briefing-actions button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.briefing-actions button.primary-btn {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+:root[data-theme="neon-dark"] .briefing-actions button.primary-btn,
+:root[data-theme="neon-light"] .briefing-actions button.primary-btn {
+  color: #000;
+}
+
+.briefing-actions button.primary-btn:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.briefing-output {
+  width: 100%;
+  max-width: 600px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px 24px;
+  min-height: 80px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-primary);
+  transition: opacity 0.3s;
+  position: relative;
+}
+
+.briefing-output:empty::before {
+  content: 'Click "Generate Briefing" to start your day.';
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 13px;
+}
+
+.briefing-hint {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  margin-top: 16px;
+  text-align: center;
+}

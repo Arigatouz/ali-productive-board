@@ -1,12 +1,13 @@
 header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: stretch;
   margin-bottom: 16px;
-  padding-bottom: 16px;
+  padding-bottom: 0;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
   position: relative;
+  gap: 0;
 }
 
 header::after {
@@ -22,11 +23,19 @@ header::after {
 
 .header-left {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0;
+  padding-bottom: 16px;
+  flex: 1;
+  min-width: 0;
 }
 
-.buttons { display: flex; gap: 8px; }
+.buttons {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding-bottom: 16px;
+}
 
 /* Tab panel containers */
 .tab-panel {
@@ -89,6 +98,52 @@ header::after {
   }
 }
 
+/* ── 1200px: Header wraps — tabs scroll horizontally ── */
+@media (max-width: 1200px) {
+  header {
+    flex-wrap: wrap;
+    padding-bottom: 0;
+    align-items: center;
+  }
+
+  .header-left {
+    flex: 1;
+    min-width: 0;
+    flex-wrap: wrap;
+    padding-bottom: 8px;
+    align-items: center;
+  }
+
+  /* Title div fills row 1 so tabs wrap to row 2 */
+  .header-left > div:first-of-type {
+    flex: 1;
+  }
+
+  #mainTabToggle {
+    flex: 1 0 0;
+    width: auto;
+    margin-left: 0;
+    padding: 4px 0 8px;
+    border-top: 1px solid var(--border-light);
+    align-self: stretch;
+    align-items: center;
+  }
+
+  /* Board/List sits at end of the tab row */
+  #taskViewToggle {
+    flex-shrink: 0;
+    border-top: 1px solid var(--border-light);
+    padding: 4px 0 8px;
+    align-self: stretch;
+    align-items: center;
+  }
+
+  .buttons {
+    padding-bottom: 8px;
+    flex-shrink: 0;
+  }
+}
+
 /* ── 1024px: Medium tablets (landscape) ── */
 @media (max-width: 1024px) {
   body {
@@ -140,6 +195,7 @@ header::after {
     width: 26px;
     height: 26px;
     margin-right: 0;
+    grid-column: 1;
     grid-row: 1 / 3;
   }
 
@@ -217,6 +273,13 @@ header::after {
 
   /* ─ Memory panel ─ */
   #memoryPanel.tab-panel.active {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* ─ Brainstorm / Chat panels ─ */
+  #brainstormPanel.tab-panel.active,
+  #chatPanel.tab-panel.active {
     min-height: 0;
     overflow: hidden;
   }
@@ -316,7 +379,9 @@ header::after {
 
   #mainTabToggle button { font-size: 10px; padding: 7px 4px; }
 
-  .buttons { gap: 5px; }
+  .buttons { gap: 5px; flex-wrap: nowrap; }
+
+  .btn-label-suffix { display: none; }
 
   /* Board */
   .cards { max-height: 320px; }

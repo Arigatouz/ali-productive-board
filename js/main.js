@@ -22,6 +22,22 @@ import { initCmdPalette, buildCmdList, openCmdPalette, closeCmdPalette } from '.
 import { initCapture, toggleQC, closeQC } from './capture.js';
 import { initKeyboard, showKbHelp, closeKbModal } from './keyboard.js';
 import { initSpeech, toggleSpeech, cycleLangMode } from './speech.js';
+import { initArticleChat, renderArticleChat } from './article-chat.js';
+import { initMorningBriefing, generateBriefing, speakBriefing } from './morning-briefing.js';
+import { initBrainstorm, loadBrainstormFromHackMD, saveBrainstormToHackMD, renderBrainstorm } from './brainstorm.js';
+import { loadAIConfig, saveAIConfig } from './ai-config.js';
+
+// ── Secure marked configuration ────────────────────────────────────
+// Drop raw HTML blocks before they reach innerHTML. marked v9 passes raw HTML
+// blocks through as-is; returning '' from the html renderer discards them while
+// leaving all markdown-generated elements (links, bold, code, etc.) intact.
+if (window.marked) {
+  window.marked.use({
+    renderer: {
+      html() { return ''; },
+    },
+  });
+}
 
 // ── Data consolidation ────────────────────────────────────────────
 // Central getter for the current in-memory data snapshot (for saveDashboardData)
@@ -44,6 +60,9 @@ async function initDashboard() {
   const config = await loadConfig();
   await initTheme();
 
+  // Load AI config (API keys, provider selection)
+  const aiConfig = await loadAIConfig();
+
   // Load dashboard data from HackMD (falls back to defaults silently)
   const data = await loadDashboardData(config);
 
@@ -63,6 +82,8 @@ async function initDashboard() {
     renderTasks,
     renderFocusTab,
     renderJournalDay,
+    renderArticleChat,
+    renderBrainstorm,
   };
 
   // Tab button wiring (use closure over tabContext)
@@ -72,6 +93,9 @@ async function initDashboard() {
   bindTab('articlesTabBtn', 'articles');
   bindTab('focusTabBtn',    'focus');
   bindTab('journalTabBtn',  'journal');
+  bindTab('chatTabBtn',      'chat');
+  bindTab('briefingTabBtn',  'briefing');
+  bindTab('brainstormTabBtn','brainstorm');
 
   // Build command list (needs live function refs)
   buildCmdList({
@@ -106,6 +130,9 @@ async function initDashboard() {
   initTasks(config);
   initMemory(config);
   initArticles(config);
+  initArticleChat(aiConfig);
+  initMorningBriefing(aiConfig);
+  initBrainstorm(config);
 
   // Settings button
   document.getElementById('settingsBtn')?.addEventListener('click', () => showSettingsModal(config, saveConfig));
@@ -128,6 +155,7 @@ async function initDashboard() {
       loadMemoryFromAPI(config),
       loadArticlesFromAPI(config),
       loadJournalFromHackMD(config),
+      loadBrainstormFromHackMD(config),
     ]);
   } else {
     showStatus('Please configure your HackMD settings');

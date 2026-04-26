@@ -12,4 +12,4 @@ dist/
 *.png
 docs
 .idea
-
+private.wrangler.toml

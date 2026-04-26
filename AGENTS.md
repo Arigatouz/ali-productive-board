@@ -4,11 +4,11 @@
 
 Static single-page app. No build step, no bundler, no framework. ES modules loaded natively in the browser.
 
-**Cannot open `index.html` via `file://`** — ES modules require an HTTP server. Run `npx serve .` or `python3 -m http.server 4242` from the repo root.
+**Cannot open `index.html` via `file://`** — ES modules require an HTTP server. Run `npx serve .` or `python3 -m http.server 4242`.
 
-Source is split across `index.html` (HTML structure only, ~420 lines), `js/` (21 modules, ~3500 lines total), and `css/` (11 files, ~2500 lines total). Entry point: `js/main.js`.
+Source: `index.html` (~474 lines), `js/` (25 modules, ~4800 lines), `css/` (14 files, ~3800 lines). Entry point: `js/main.js`.
 
-The CLAUDE.md in this repo is **stale** — it still describes the old monolithic `index.html` (~6300 lines). The README is current.
+CLAUDE.md is stale — it describes the old monolithic `index.html`. README is current.
 
 ## Commands
 
@@ -17,59 +17,54 @@ npm run worker:dev      # Cloudflare Worker dev server (CORS proxy)
 npm run worker:deploy   # Deploy Worker to Cloudflare
 ```
 
-No build, test, lint, or typecheck commands exist. There are no tests.
+No build, test, lint, or typecheck commands. No tests exist.
 
 ## Data Flow
 
-- **IndexedDB** (`productive-board` database, `config` store): API token, note IDs, CORS proxy URL, theme choice
+- **IndexedDB** (`productive-board` → `config` store): API token, note IDs, CORS proxy URL, theme, AI provider config, API keys
 - **localStorage**: `pomo_state` (timer state), `freeze_tokens`
-- **HackMD notes**: Tasks, Memory, Articles, Journal, Dashboard Data — all synced via the Cloudflare Worker CORS proxy
-- **Browser Cache API**: Whisper ONNX model weights (~244MB) cached after first download by Transformers.js
+- **HackMD notes**: Tasks, Memory, Articles, Journal, Dashboard Data, Brainstorm — all proxied through Cloudflare Worker
+- **Browser Cache API**: Whisper model weights (~244MB) cached after first download
 
-All HackMD API calls go through `getFullApiUrl(path)` in `js/api.js`, which prepends the configured CORS proxy URL.
-
-`js/db.js` handles IndexedDB. On first load after upgrade, `migrateFromLocalStorage()` moves old `hackmd_*` keys to IndexedDB and deletes the old keys.
+All HackMD API calls route through `getFullApiUrl(path)` in `js/api.js`, which prepends the CORS proxy URL. `js/db.js` manages IndexedDB; `migrateFromLocalStorage()` runs once on upgrade.
 
 ## Module Wiring
 
-`initDashboard()` in `js/main.js` is the boot sequence. It awaits `initDB()` → `migrateFromLocalStorage()` → `loadConfig()` → `initTheme()`, then loads dashboard data, then inits all feature modules. Each module gets a `onDataChange` callback that triggers debounced saves back to HackMD via `scheduleSave()`.
+Boot sequence: `initDashboard()` in `js/main.js` → `initDB()` → `migrateFromLocalStorage()` → `loadConfig()` → `loadAIConfig()` → `initTheme()` → load data → init feature modules. Each module gets an `onDataChange` callback that triggers debounced saves via `scheduleSave()`.
 
-Tab switching: `switchMainTab(tabName)` in `js/ui.js`. Valid names: `'tasks'`, `'memory'`, `'articles'`, `'focus'`, `'journal'`.
+Tab names (string literals used in `switchMainTab`): `'tasks'`, `'memory'`, `'articles'`, `'focus'`, `'journal'`, `'chat'`, `'briefing'`, `'brainstorm'`.
+
+Tab shortcuts: 1–5 for original tabs, 6=Chat, 7=Briefing, 8=Brainstorm.
+
+Some `window.*` exposures exist for legacy inline `onclick` handlers in memory.js templates (e.g., `openFileModal`, `filterMemoryDirectory`).
 
 ## Conventions
 
-- No TypeScript, no bundler — vanilla ES modules with `import`/`export`
-- External dependencies: `marked@9.1.6` loaded via CDN in `index.html`; `@huggingface/transformers` loaded lazily via dynamic `import()` on first voice input click
-- Module pattern: each `js/*.js` file exports `init*` + domain functions; `main.js` wires them together
-- CSS is per-feature (one file per tab/panel), loaded via `<link>` in `index.html`
-- Task format: `## Section` headers + `- [ ]`/`- [x]` checkboxes, parsed by `parseTaskMarkdown()` in `js/tasks.js`
-- Article format: pipe-delimited table in HackMD note with `| id | name | link | status | progress |` header
-- Journal format: entries delimited by `<!-- journal:YYYY-MM-DD -->` start and `<!-- /journal:YYYY-MM-DD -->` end markers; older start-only and `## YYYY-MM-DD` formats are also parsed on load
-- Dashboard Data note: sections with JSON blocks inside triple-backtick fences
+- Vanilla ES modules, no TypeScript, no bundler
+- External deps: `marked@9.1.6` via CDN in `index.html`; `@huggingface/transformers` lazy-loaded on first voice input
+- Perplexity/Anthropic APIs called directly from browser (no proxy needed for those)
+- Module pattern: each `js/*.js` exports `init*` + domain functions; `main.js` wires them
+- CSS: one file per feature/tab, loaded via `<link>` in `index.html`
+- Task format: `## Section` headers + `- [ ]`/`- [x]` checkboxes
+- Article format: pipe-delimited table `| id | name | link | status | progress |`
+- Journal format: `<!-- journal:YYYY-MM-DD -->` … `<!-- /journal:YYYY-MM-DD -->` markers (older formats also parsed on load)
+- Dashboard Data note: JSON inside triple-backtick fences under `## section` headers
 
-## Voice Input (Speech-to-Text)
+## AI & Voice
 
-- `js/speech.js` — browser-based STT using `onnx-community/whisper-small` via `@huggingface/transformers@3`
-- Model is lazy-loaded on first mic click (~244MB, cached in browser Cache API after first download)
-- Tries WebGPU first, falls back to WASM
-- Microphone audio captured at 16kHz via `ScriptProcessorNode`, chunked every ~5s for transcription
-- Three language modes cycled via `speechLangBtn` button or `Ctrl+Shift+L`:
-  - **AR** (`language: 'arabic'`) — default, writes Arabic script, handles English insertions
-  - **EN** (`language: 'english'`) — English only
-  - **MIX** (`language: null`) — auto-detect per segment (may default to English if Whisper can't decide)
-- Transcribed text is inserted into the currently focused input (Quick Capture, Journal textarea, etc.)
-- A cyber-themed full-screen overlay shows download progress (MB loaded, total, %, ETA, current file) while the model loads
-- Exports: `initSpeech()`, `toggleSpeech()`, `cycleLangMode()`
+- **AI routing**: `callAI()` in `ai-config.js` dispatches to `callPerplexity()` or `callAnthropic()` based on `ai_provider` key (`'perplexity'` or `'anthropic'`)
+- **Speech**: `js/speech.js` uses `onnx-community/whisper-small` via `@huggingface/transformers`; WebGPU first, WASM fallback; three language modes (AR/EN/MIX) cycled via button or `Ctrl+Shift+L`
+- **Whisper gotcha**: passing no `language` defaults to English. Always pass `language: 'arabic'` or `language: 'english'` explicitly for reliable results.
 
 ## Worker
 
-`worker/index.js` is a Cloudflare Worker that proxies browser requests to the HackMD API. Deployed via `npx wrangler deploy` using `wrangler.toml`. The proxy URL must end with `/hackmd/` for correct routing.
+`worker/index.js` — Cloudflare Worker CORS proxy for HackMD API. Proxy URL must end with `/hackmd/` for correct routing.
 
 ## Gotchas
 
-- Config is in IndexedDB, not localStorage. Inspect via DevTools → Application → IndexedDB → `productive-board` → `config`. To wipe: `indexedDB.deleteDatabase('productive-board')` in console.
-- The `dashboard_theme` localStorage key mentioned in CLAUDE.md is outdated — theme is now stored in IndexedDB as `theme`.
+- Config lives in **IndexedDB**, not localStorage. DevTools → Application → IndexedDB → `productive-board` → `config`. Wipe: `indexedDB.deleteDatabase('productive-board')` in console.
 - Without a Dashboard Data Note ID configured, habits/badges/analytics/pomo-log are session-only and lost on reload.
-- The pomodoro timer intentionally resets on page reload to avoid counting idle time.
-- Transformers.js model download only happens once — subsequent visits load from browser cache in seconds. The overlay only appears on first download.
-- Whisper defaults to English when `language` is not specified (`language: ''` or omitted). Always pass `language: 'arabic'` or `language: 'english'` explicitly for reliable results in those languages.
+- Pomodoro timer intentionally resets on reload (avoids counting idle time). Session counts persist in Dashboard Data note.
+- Whisper model download (~244MB) only happens once; cached in browser Cache API thereafter.
+- `freeze_tokens` is the only dashboard data still in localStorage (not IndexedDB or HackMD).
+- Theme is stored in IndexedDB as `theme` — the old `dashboard_theme` localStorage key mentioned in CLAUDE.md is outdated.
