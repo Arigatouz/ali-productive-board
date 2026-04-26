@@ -123,6 +123,17 @@ async function proxyArticle(request, url) {
   const targetUrl = url.searchParams.get('url');
   if (!targetUrl) return new Response('Missing url param', { status: 400 });
 
+  // Validate URL — only allow http(s) to prevent SSRF to internal/metadata endpoints
+  let parsedTarget;
+  try {
+    parsedTarget = new URL(targetUrl);
+  } catch {
+    return new Response('Invalid url param', { status: 400 });
+  }
+  if (parsedTarget.protocol !== 'https:' && parsedTarget.protocol !== 'http:') {
+    return new Response('URL scheme not allowed', { status: 400 });
+  }
+
   try {
     const res = await fetch(targetUrl, {
       redirect: 'follow',
